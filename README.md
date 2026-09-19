@@ -35,12 +35,25 @@ docker compose up --build postgres backend-api
 отдельные обязательные значения `Authentication__JwtSigningKey`,
 `Authentication__Issuer`, `Authentication__Audience` и
 `Authentication__AccessTokenLifetimeMinutes` и не включать dev-регистрацию.
+
 ## Phase 02: локальные Unity dedicated servers
 
 Phase 02 добавляет два локальных Unity Linux headless game-server контейнера:
 `game-server-1` и `game-server-2`. Они запускаются только через Compose profile
 `game-servers`, публикуют HTTP health/status endpoint и UDP game port, но backend
 matchmaking/allocation отложены до Phase 03.
+
+Локальные значения портов для profile `game-servers` задаются в `.env.example`:
+
+| Переменная | Значение | Назначение |
+| --- | --- | --- |
+| `GAME_SERVER_PUBLIC_HOST` | `localhost` | Публичный host для локального статуса сервера |
+| `GAME_SERVER_HTTP_CONTAINER_PORT` | `8081` | HTTP health/status port внутри контейнера |
+| `GAME_SERVER_NETWORK_CONTAINER_PORT` | `7770` | UDP game port внутри контейнера |
+| `GAME_SERVER_1_HTTP_HOST_PORT` | `8091` | HTTP health/status port `game-server-1` на host |
+| `GAME_SERVER_2_HTTP_HOST_PORT` | `8092` | HTTP health/status port `game-server-2` на host |
+| `GAME_SERVER_1_NETWORK_HOST_PORT` | `7771` | UDP game port `game-server-1` на host |
+| `GAME_SERVER_2_NETWORK_HOST_PORT` | `7772` | UDP game port `game-server-2` на host |
 
 Сборка Unity Linux headless player выполняется локально. Выходной каталог
 `Builds/` игнорируется Git и не должен коммититься. Если команда сборки Unity
@@ -74,6 +87,7 @@ curl http://localhost:8092/status
 ```cmd
 docker compose --env-file .env.example --profile game-servers restart game-server-1
 docker compose --env-file .env.example --profile game-servers ps
+docker compose --env-file .env.example --profile game-servers logs game-server-1 game-server-2
 ```
 
 Остановка Phase 02 контейнеров:
