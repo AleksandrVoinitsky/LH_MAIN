@@ -2,3 +2,13 @@
 **/obj/
 .git/
 .env
+Library/
+Temp/
+Obj/
+Logs/
+UserSettings/
+MemoryCaptures/
+Builds/**
+!Builds/GameServer/
+!Builds/GameServer/LinuxHeadless/
+!Builds/GameServer/LinuxHeadless/**
