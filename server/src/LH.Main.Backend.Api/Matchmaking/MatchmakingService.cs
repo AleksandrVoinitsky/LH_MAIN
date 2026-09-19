@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using LH.Main.Backend.Api.Persistence;
 using LH.Main.Backend.Api.Persistence.Entities;
 using LH.Main.Contracts;
@@ -7,6 +9,8 @@ using Microsoft.Extensions.Options;
 namespace LH.Main.Backend.Api.Matchmaking;
 
 public sealed record MatchmakingCancelResult(bool ConflictAssigned, MatchmakingStatusResponse Response);
+
+public sealed record TicketValidationEndpointResult(bool Unauthorized, TicketValidationResponse Response);
 
 public sealed class MatchmakingService(
     AppDbContext database,
@@ -148,9 +152,81 @@ public sealed class MatchmakingService(
         return new MatchmakingCancelResult(false, new MatchmakingStatusResponse(MatchQueueEntryStatuses.Cancelled));
     }
 
+    public async Task<TicketValidationEndpointResult> ValidateTicketAsync(
+        TicketValidationRequest request,
+        string serverKey,
+        CancellationToken cancellationToken)
+    {
+        if (!ServerKeyMatches(serverKey))
+        {
+            return new TicketValidationEndpointResult(true, new TicketValidationResponse(false));
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Ticket) || string.IsNullOrWhiteSpace(request.ServerId))
+        {
+            return InvalidTicketValidationResult();
+        }
+
+        var ticketHash = ticketService.Hash(request.Ticket);
+        var now = clock.UtcNow;
+        await using var transaction = await database.Database.BeginTransactionAsync(cancellationToken);
+        var ticket = await database.MatchTickets
+            .AsNoTracking()
+            .SingleOrDefaultAsync(candidate => candidate.TicketHash == ticketHash, cancellationToken);
+
+        if (ticket is null
+            || ticket.MatchId != request.MatchId
+            || ticket.PlayerId != request.PlayerId
+            || ticket.ServerId != request.ServerId
+            || ticket.ExpiresAtUtc <= now
+            || ticket.ConsumedAtUtc is not null)
+        {
+            await transaction.CommitAsync(cancellationToken);
+            return InvalidTicketValidationResult();
+        }
+
+        var consumedRows = await database.MatchTickets
+            .Where(candidate => candidate.Id == ticket.Id && candidate.ConsumedAtUtc == null)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(candidate => candidate.ConsumedAtUtc, now), cancellationToken);
+        if (consumedRows != 1)
+        {
+            await transaction.CommitAsync(cancellationToken);
+            return InvalidTicketValidationResult();
+        }
+
+        await database.Matches
+            .Where(match => match.Id == ticket.MatchId)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(match => match.Status, MatchSessionStatuses.TicketValidated)
+                .SetProperty(match => match.UpdatedAtUtc, now), cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+
+        return new TicketValidationEndpointResult(
+            false,
+            new TicketValidationResponse(true, ticket.MatchId, ticket.PlayerId));
+    }
+
     private Task<int> LockPlayerAsync(Guid playerId, CancellationToken cancellationToken) => database.Database.ExecuteSqlInterpolatedAsync(
         $"SELECT pg_advisory_xact_lock(hashtextextended({playerId.ToString()}, 0))",
         cancellationToken);
+
+    private bool ServerKeyMatches(string serverKey)
+    {
+        var configuredKey = gameServerOptions.Value.SharedKey;
+        if (string.IsNullOrWhiteSpace(configuredKey) || string.IsNullOrEmpty(serverKey))
+        {
+            return false;
+        }
+
+        var configuredBytes = Encoding.UTF8.GetBytes(configuredKey);
+        var suppliedBytes = Encoding.UTF8.GetBytes(serverKey);
+        return suppliedBytes.Length == configuredBytes.Length
+            && CryptographicOperations.FixedTimeEquals(suppliedBytes, configuredBytes);
+    }
+
+    private static TicketValidationEndpointResult InvalidTicketValidationResult() => new(
+        false,
+        new TicketValidationResponse(false));
 
     private Task<MatchQueueEntry?> GetActiveEntryAsync(Guid playerId, CancellationToken cancellationToken) => database.MatchQueueEntries
         .Where(entry => entry.PlayerId == playerId

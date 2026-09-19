@@ -250,6 +250,20 @@ if (builder.Configuration.GetValue<bool>("Authentication:EnableDevRegistration")
     }).RequireAuthorization();
 }
 
+if (!string.IsNullOrWhiteSpace(connectionString))
+{
+    app.MapPost("/internal/v1/matches/tickets/validate", async (
+        TicketValidationRequest request,
+        HttpContext context,
+        MatchmakingService service,
+        CancellationToken cancellationToken) =>
+    {
+        var serverKey = context.Request.Headers["X-Game-Server-Key"].ToString();
+        var result = await service.ValidateTicketAsync(request, serverKey, cancellationToken);
+        return result.Unauthorized ? Results.Unauthorized() : Results.Ok(result.Response);
+    });
+}
+
 app.Run();
 
 public partial class Program;
