@@ -25,6 +25,14 @@ services:
       Authentication__Audience: ${JWT_AUDIENCE:?Set JWT_AUDIENCE in .env}
       Authentication__AccessTokenLifetimeMinutes: ${JWT_ACCESS_TOKEN_LIFETIME_MINUTES:?Set JWT_ACCESS_TOKEN_LIFETIME_MINUTES in .env}
       Authentication__EnableDevRegistration: "true"
+      GameServers__SharedKey: ${GAME_SERVER_SHARED_KEY}
+      GameServers__TicketLifetimeSeconds: ${GAME_SERVER_TICKET_LIFETIME_SECONDS}
+      GameServers__Slots__0__ServerId: ${GAME_SERVER_1_ID}
+      GameServers__Slots__0__PublicHost: ${GAME_SERVER_PUBLIC_HOST}
+      GameServers__Slots__0__PublicPort: ${GAME_SERVER_1_NETWORK_HOST_PORT}
+      GameServers__Slots__1__ServerId: ${GAME_SERVER_2_ID}
+      GameServers__Slots__1__PublicHost: ${GAME_SERVER_PUBLIC_HOST}
+      GameServers__Slots__1__PublicPort: ${GAME_SERVER_2_NETWORK_HOST_PORT}
     depends_on:
       postgres:
         condition: service_healthy
@@ -42,7 +50,7 @@ services:
       context: .
       dockerfile: docker/game-server/Dockerfile
     environment:
-      GAME_SERVER_ID: game-server-1
+      GAME_SERVER_ID: ${GAME_SERVER_1_ID:?Set GAME_SERVER_1_ID in .env}
       GAME_SERVER_HTTP_PORT: ${GAME_SERVER_HTTP_CONTAINER_PORT:?Set GAME_SERVER_HTTP_CONTAINER_PORT in .env}
       GAME_SERVER_NETWORK_PORT: ${GAME_SERVER_NETWORK_CONTAINER_PORT:?Set GAME_SERVER_NETWORK_CONTAINER_PORT in .env}
       GAME_SERVER_PUBLIC_HOST: ${GAME_SERVER_PUBLIC_HOST:?Set GAME_SERVER_PUBLIC_HOST in .env}
@@ -62,7 +70,7 @@ services:
       context: .
       dockerfile: docker/game-server/Dockerfile
     environment:
-      GAME_SERVER_ID: game-server-2
+      GAME_SERVER_ID: ${GAME_SERVER_2_ID:?Set GAME_SERVER_2_ID in .env}
       GAME_SERVER_HTTP_PORT: ${GAME_SERVER_HTTP_CONTAINER_PORT:?Set GAME_SERVER_HTTP_CONTAINER_PORT in .env}
       GAME_SERVER_NETWORK_PORT: ${GAME_SERVER_NETWORK_CONTAINER_PORT:?Set GAME_SERVER_NETWORK_CONTAINER_PORT in .env}
       GAME_SERVER_PUBLIC_HOST: ${GAME_SERVER_PUBLIC_HOST:?Set GAME_SERVER_PUBLIC_HOST in .env}
