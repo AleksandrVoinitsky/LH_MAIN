@@ -11,6 +11,7 @@
 .vscode/
 *.csproj
 *.sln
+!server/LH.Main.Server.sln
 *.suo
 *.user
 *.userprefs
@@ -20,3 +21,4 @@
 Документация-*.zip
 _documentation-source/
 My project/
+.env
