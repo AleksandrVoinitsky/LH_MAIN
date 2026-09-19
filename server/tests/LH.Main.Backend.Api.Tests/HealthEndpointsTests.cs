@@ -79,7 +79,7 @@ public sealed class HealthEndpointsTests(WebApplicationFactory<Program> factory,
     }
 
     [Fact]
-    public async Task OpenApiDescribesBearerAuthenticationForProfile()
+    public async Task OpenApiDescribesBearerAuthenticationForPublicAuthenticatedEndpoints()
     {
         using var application = factory.WithWebHostBuilder(builder =>
         {
@@ -98,13 +98,22 @@ public sealed class HealthEndpointsTests(WebApplicationFactory<Program> factory,
             .GetProperty("components")
             .GetProperty("securitySchemes")
             .GetProperty("Bearer");
-        var profileOperation = document.RootElement
-            .GetProperty("paths")
-            .GetProperty("/v1/profile")
-            .GetProperty("get");
+        var paths = document.RootElement.GetProperty("paths");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("http", bearerScheme.GetProperty("type").GetString());
-        Assert.True(profileOperation.TryGetProperty("security", out _));
+        AssertOperationHasSecurity(paths, "/v1/profile", "get");
+        AssertOperationHasSecurity(paths, "/v1/matchmaking/queue", "post");
+        AssertOperationHasSecurity(paths, "/v1/matchmaking/status", "get");
+        AssertOperationHasSecurity(paths, "/v1/matchmaking/cancel", "post");
+    }
+
+    private static void AssertOperationHasSecurity(JsonElement paths, string path, string method)
+    {
+        var operation = paths
+            .GetProperty(path)
+            .GetProperty(method);
+
+        Assert.True(operation.TryGetProperty("security", out _));
     }
 }

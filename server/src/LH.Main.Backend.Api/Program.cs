@@ -201,6 +201,53 @@ if (builder.Configuration.GetValue<bool>("Authentication:EnableDevRegistration")
         var profile = await identityService.GetProfileAsync(userId, cancellationToken);
         return profile is null ? Results.Unauthorized() : Results.Ok(profile);
     }).RequireAuthorization();
+
+    app.MapPost("/v1/matchmaking/queue", async (
+        HttpContext context,
+        MatchmakingService service,
+        CancellationToken cancellationToken) =>
+    {
+        var subject = context.User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+        if (!Guid.TryParse(subject, out var userId))
+        {
+            return Results.Unauthorized();
+        }
+
+        return Results.Ok(await service.EnqueueAsync(userId, cancellationToken));
+    }).RequireAuthorization();
+
+    app.MapGet("/v1/matchmaking/status", async (
+        HttpContext context,
+        MatchmakingService service,
+        CancellationToken cancellationToken) =>
+    {
+        var subject = context.User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+        if (!Guid.TryParse(subject, out var userId))
+        {
+            return Results.Unauthorized();
+        }
+
+        return Results.Ok(await service.GetStatusAsync(userId, cancellationToken));
+    }).RequireAuthorization();
+
+    app.MapPost("/v1/matchmaking/cancel", async (
+        HttpContext context,
+        MatchmakingService service,
+        CancellationToken cancellationToken) =>
+    {
+        var subject = context.User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+        if (!Guid.TryParse(subject, out var userId))
+        {
+            return Results.Unauthorized();
+        }
+
+        var result = await service.CancelAsync(userId, cancellationToken);
+        return result.ConflictAssigned
+            ? Results.Problem(
+                statusCode: StatusCodes.Status409Conflict,
+                extensions: new Dictionary<string, object?> { ["code"] = "match_already_assigned" })
+            : Results.Ok(result.Response);
+    }).RequireAuthorization();
 }
 
 app.Run();
