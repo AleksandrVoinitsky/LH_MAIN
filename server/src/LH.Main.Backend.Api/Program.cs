@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using LH.Main.Contracts;
 using LH.Main.Backend.Api.Identity;
+using LH.Main.Backend.Api.Matchmaking;
 using LH.Main.Backend.Api.Persistence;
 using LH.Main.Backend.Api.Persistence.Entities;
 using Microsoft.AspNetCore.Authentication;
@@ -126,6 +127,13 @@ if (!string.IsNullOrWhiteSpace(connectionString))
     await using var scope = app.Services.CreateAsyncScope();
     var database = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await database.Database.MigrateAsync();
+
+    var gameServerOptions = new GameServerOptions();
+    app.Configuration.GetSection("GameServers").Bind(gameServerOptions);
+    if (!gameServerOptions.Validate().Any())
+    {
+        await GameServerSlotSeeder.SeedAsync(database, gameServerOptions, CancellationToken.None);
+    }
 }
 
 app.MapGet("/health/live", () => Results.Ok(new HealthStatusResponse("ok")));

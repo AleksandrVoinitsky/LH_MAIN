@@ -47,6 +47,26 @@ public sealed class PersistenceMigrationTests(PostgreSqlFixture database) : ICla
     }
 
     [Fact]
+    public async Task StartupAppliesMatchFlowMigrationToEmptyDatabase()
+    {
+        using var application = _factory.WithWebHostBuilder(builder =>
+            builder.UseSetting("ConnectionStrings:MainDb", database.ConnectionString));
+        using var client = application.CreateClient();
+        await client.GetAsync("/health/live");
+
+        await using var connection = new NpgsqlConnection(database.ConnectionString);
+        await connection.OpenAsync();
+        foreach (var tableName in new[] { "game_server_slots", "match_queue_entries", "matches", "match_tickets" })
+        {
+            await using var command = new NpgsqlCommand(
+                "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = @tableName)",
+                connection);
+            command.Parameters.AddWithValue("tableName", tableName);
+            Assert.True((bool)(await command.ExecuteScalarAsync())!);
+        }
+    }
+
+    [Fact]
     public async Task ApplyingMigrationsAgainPreservesExistingRecords()
     {
         using var application = _factory.WithWebHostBuilder(builder =>
