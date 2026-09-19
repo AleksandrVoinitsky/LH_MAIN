@@ -90,6 +90,51 @@ public sealed class MatchmakingServiceTests(PostgreSqlFixture database)
         Assert.Equal(assignment.Assignment!.MatchId, slot.CurrentMatchId);
     }
 
+    [Fact]
+    public async Task GetStatusExpiresUnvalidatedAssignmentAndReleasesSlot()
+    {
+        await using var context = await CreateCleanDbContextAsync();
+        var playerId = await CreateUserAsync(context, "expired-assignment");
+        await SeedSlotsAsync(context, "game-server-1");
+        var assigned = await CreateService(context).EnqueueAsync(playerId, CancellationToken.None);
+        var service = CreateService(context, DateTimeOffset.Parse("2026-09-20T00:02:00Z"));
+
+        var status = await service.GetStatusAsync(playerId, CancellationToken.None);
+        var requeued = await service.EnqueueAsync(playerId, CancellationToken.None);
+
+        Assert.Equal("expired", status.Status);
+        Assert.Null(status.Assignment);
+        Assert.Equal("assigned", requeued.Status);
+        Assert.NotEqual(assigned.Assignment!.MatchId, requeued.Assignment!.MatchId);
+        var originalMatch = await context.Matches.SingleAsync(match => match.Id == assigned.Assignment.MatchId);
+        Assert.Equal(MatchSessionStatuses.Expired, originalMatch.Status);
+        Assert.Equal(1, await context.GameServerSlots.CountAsync(slot => slot.Status == GameServerSlotStatuses.Occupied));
+    }
+
+    [Fact]
+    public async Task RepeatedEnqueueAssignsQueuedPlayerWhenCapacityAppears()
+    {
+        await using var context = await CreateCleanDbContextAsync();
+        var playerId = await CreateUserAsync(context, "queued-retry");
+        await SeedSlotsAsync(context, "game-server-1");
+        await context.GameServerSlots.ExecuteUpdateAsync(setters => setters
+            .SetProperty(slot => slot.Status, GameServerSlotStatuses.Occupied)
+            .SetProperty(slot => slot.CurrentMatchId, Guid.NewGuid()));
+        var service = CreateService(context);
+        var queued = await service.EnqueueAsync(playerId, CancellationToken.None);
+        await context.GameServerSlots.ExecuteUpdateAsync(setters => setters
+            .SetProperty(slot => slot.Status, GameServerSlotStatuses.Available)
+            .SetProperty(slot => slot.CurrentMatchId, (Guid?)null));
+
+        var assigned = await service.EnqueueAsync(playerId, CancellationToken.None);
+
+        Assert.Equal("queued", queued.Status);
+        Assert.Equal("assigned", assigned.Status);
+        Assert.Equal("game-server-1", assigned.Assignment!.ServerId);
+        Assert.Equal(1, await context.Matches.CountAsync());
+        Assert.Equal(1, await context.MatchTickets.CountAsync());
+    }
+
     private async Task<AppDbContext> CreateCleanDbContextAsync()
     {
         var context = CreateDbContext();

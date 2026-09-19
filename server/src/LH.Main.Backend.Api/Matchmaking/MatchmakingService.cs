@@ -26,9 +26,12 @@ public sealed class MatchmakingService(
         var activeEntry = await GetActiveEntryAsync(playerId, cancellationToken);
         if (activeEntry is not null)
         {
-            var activeResponse = await BuildResponseAsync(activeEntry, null, cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
-            return activeResponse;
+            var activeResponse = await ResolveActiveEntryAsync(activeEntry, cancellationToken);
+            if (activeEntry.Status != MatchQueueEntryStatuses.Expired)
+            {
+                await transaction.CommitAsync(cancellationToken);
+                return activeResponse;
+            }
         }
 
         var now = clock.UtcNow;
@@ -43,86 +46,23 @@ public sealed class MatchmakingService(
         database.MatchQueueEntries.Add(entry);
         await database.SaveChangesAsync(cancellationToken);
 
-        var slot = await database.GameServerSlots
-            .AsNoTracking()
-            .Where(candidate => candidate.Status == GameServerSlotStatuses.Available)
-            .OrderBy(candidate => candidate.ServerId)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        if (slot is null)
-        {
-            await transaction.CommitAsync(cancellationToken);
-            return BuildQueuedResponse(entry);
-        }
-
-        var matchId = Guid.NewGuid();
-        var slotRowsUpdated = await database.GameServerSlots
-            .Where(candidate => candidate.ServerId == slot.ServerId && candidate.Status == GameServerSlotStatuses.Available)
-            .ExecuteUpdateAsync(setters => setters
-                .SetProperty(candidate => candidate.Status, GameServerSlotStatuses.Occupied)
-                .SetProperty(candidate => candidate.CurrentMatchId, matchId)
-                .SetProperty(candidate => candidate.UpdatedAtUtc, now), cancellationToken);
-
-        if (slotRowsUpdated != 1)
-        {
-            await transaction.CommitAsync(cancellationToken);
-            return BuildQueuedResponse(entry);
-        }
-
-        var trackedSlot = database.GameServerSlots.Local.FirstOrDefault(candidate => candidate.ServerId == slot.ServerId);
-        if (trackedSlot is not null)
-        {
-            trackedSlot.Status = GameServerSlotStatuses.Occupied;
-            trackedSlot.CurrentMatchId = matchId;
-            trackedSlot.UpdatedAtUtc = now;
-        }
-
-        var ticket = ticketService.Issue(matchId, playerId, slot.ServerId, gameServerOptions.Value.GetTicketLifetime());
-        var match = new MatchSession
-        {
-            Id = matchId,
-            PlayerId = playerId,
-            ServerId = slot.ServerId,
-            Status = MatchSessionStatuses.Reserved,
-            CreatedAtUtc = now,
-            UpdatedAtUtc = now
-        };
-
-        database.Matches.Add(match);
-        database.MatchTickets.Add(new MatchTicket
-        {
-            Id = Guid.NewGuid(),
-            MatchId = matchId,
-            PlayerId = playerId,
-            ServerId = slot.ServerId,
-            TicketHash = ticket.TicketHash,
-            ExpiresAtUtc = ticket.ExpiresAtUtc,
-            CreatedAtUtc = now
-        });
-
-        entry.Status = MatchQueueEntryStatuses.Assigned;
-        entry.AssignedMatchId = matchId;
-        entry.UpdatedAtUtc = now;
-        await database.SaveChangesAsync(cancellationToken);
+        var response = await TryAssignSlotAsync(entry, now, cancellationToken) ?? BuildQueuedResponse(entry);
         await transaction.CommitAsync(cancellationToken);
-
-        return new MatchmakingStatusResponse(
-            MatchQueueEntryStatuses.Assigned,
-            Assignment: new MatchAssignmentResponse(
-                matchId,
-                slot.ServerId,
-                slot.PublicHost,
-                slot.PublicPort,
-                ticket.PlaintextTicket,
-                ticket.ExpiresAtUtc));
+        return response;
     }
 
     public async Task<MatchmakingStatusResponse> GetStatusAsync(Guid playerId, CancellationToken cancellationToken)
     {
+        await using var transaction = await database.Database.BeginTransactionAsync(cancellationToken);
+        await LockPlayerAsync(playerId, cancellationToken);
+
         var activeEntry = await GetActiveEntryAsync(playerId, cancellationToken);
-        return activeEntry is null
+        var response = activeEntry is null
             ? new MatchmakingStatusResponse("none")
-            : await BuildResponseAsync(activeEntry, null, cancellationToken);
+            : await ResolveActiveEntryAsync(activeEntry, cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
+        return response;
     }
 
     public async Task<MatchmakingCancelResult> CancelAsync(Guid playerId, CancellationToken cancellationToken)
@@ -139,9 +79,13 @@ public sealed class MatchmakingService(
 
         if (activeEntry.Status == MatchQueueEntryStatuses.Assigned)
         {
-            var response = await BuildResponseAsync(activeEntry, null, cancellationToken);
+            var activeResponse = await ExpireAssignmentIfNeededAsync(activeEntry, cancellationToken)
+                ? new MatchmakingStatusResponse(MatchQueueEntryStatuses.Expired)
+                : await BuildResponseAsync(activeEntry, null, cancellationToken);
             await transaction.CommitAsync(cancellationToken);
-            return new MatchmakingCancelResult(true, response);
+            return activeEntry.Status == MatchQueueEntryStatuses.Expired
+                ? new MatchmakingCancelResult(false, activeResponse)
+                : new MatchmakingCancelResult(true, activeResponse);
         }
 
         activeEntry.Status = MatchQueueEntryStatuses.Cancelled;
@@ -233,6 +177,148 @@ public sealed class MatchmakingService(
             && (entry.Status == MatchQueueEntryStatuses.Queued || entry.Status == MatchQueueEntryStatuses.Assigned))
         .OrderByDescending(entry => entry.UpdatedAtUtc)
         .FirstOrDefaultAsync(cancellationToken);
+
+    private async Task<MatchmakingStatusResponse> ResolveActiveEntryAsync(
+        MatchQueueEntry entry,
+        CancellationToken cancellationToken)
+    {
+        if (entry.Status == MatchQueueEntryStatuses.Assigned
+            && await ExpireAssignmentIfNeededAsync(entry, cancellationToken))
+        {
+            return new MatchmakingStatusResponse(MatchQueueEntryStatuses.Expired);
+        }
+
+        if (entry.Status == MatchQueueEntryStatuses.Queued)
+        {
+            return await TryAssignSlotAsync(entry, clock.UtcNow, cancellationToken) ?? BuildQueuedResponse(entry);
+        }
+
+        return await BuildResponseAsync(entry, null, cancellationToken);
+    }
+
+    private async Task<bool> ExpireAssignmentIfNeededAsync(MatchQueueEntry entry, CancellationToken cancellationToken)
+    {
+        if (entry.AssignedMatchId is not { } matchId)
+        {
+            return false;
+        }
+
+        var now = clock.UtcNow;
+        var ticket = await database.MatchTickets
+            .AsNoTracking()
+            .SingleOrDefaultAsync(candidate => candidate.MatchId == matchId, cancellationToken);
+        if (ticket is null || ticket.ConsumedAtUtc is not null || ticket.ExpiresAtUtc > now)
+        {
+            return false;
+        }
+
+        await database.Matches
+            .Where(match => match.Id == matchId && match.Status == MatchSessionStatuses.Reserved)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(match => match.Status, MatchSessionStatuses.Expired)
+                .SetProperty(match => match.UpdatedAtUtc, now), cancellationToken);
+        var trackedMatch = database.Matches.Local.FirstOrDefault(match => match.Id == matchId);
+        if (trackedMatch is not null)
+        {
+            trackedMatch.Status = MatchSessionStatuses.Expired;
+            trackedMatch.UpdatedAtUtc = now;
+        }
+
+        await database.GameServerSlots
+            .Where(slot => slot.ServerId == ticket.ServerId && slot.CurrentMatchId == matchId)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(slot => slot.Status, GameServerSlotStatuses.Available)
+                .SetProperty(slot => slot.CurrentMatchId, (Guid?)null)
+                .SetProperty(slot => slot.UpdatedAtUtc, now), cancellationToken);
+
+        var trackedSlot = database.GameServerSlots.Local.FirstOrDefault(candidate => candidate.ServerId == ticket.ServerId);
+        if (trackedSlot is not null && trackedSlot.CurrentMatchId == matchId)
+        {
+            trackedSlot.Status = GameServerSlotStatuses.Available;
+            trackedSlot.CurrentMatchId = null;
+            trackedSlot.UpdatedAtUtc = now;
+        }
+
+        entry.Status = MatchQueueEntryStatuses.Expired;
+        entry.UpdatedAtUtc = now;
+        await database.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    private async Task<MatchmakingStatusResponse?> TryAssignSlotAsync(
+        MatchQueueEntry entry,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        var slot = await database.GameServerSlots
+            .AsNoTracking()
+            .Where(candidate => candidate.Status == GameServerSlotStatuses.Available)
+            .OrderBy(candidate => candidate.ServerId)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (slot is null)
+        {
+            return null;
+        }
+
+        var matchId = Guid.NewGuid();
+        var slotRowsUpdated = await database.GameServerSlots
+            .Where(candidate => candidate.ServerId == slot.ServerId && candidate.Status == GameServerSlotStatuses.Available)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(candidate => candidate.Status, GameServerSlotStatuses.Occupied)
+                .SetProperty(candidate => candidate.CurrentMatchId, matchId)
+                .SetProperty(candidate => candidate.UpdatedAtUtc, now), cancellationToken);
+
+        if (slotRowsUpdated != 1)
+        {
+            return null;
+        }
+
+        var trackedSlot = database.GameServerSlots.Local.FirstOrDefault(candidate => candidate.ServerId == slot.ServerId);
+        if (trackedSlot is not null)
+        {
+            trackedSlot.Status = GameServerSlotStatuses.Occupied;
+            trackedSlot.CurrentMatchId = matchId;
+            trackedSlot.UpdatedAtUtc = now;
+        }
+
+        var ticket = ticketService.Issue(matchId, entry.PlayerId, slot.ServerId, gameServerOptions.Value.GetTicketLifetime());
+        database.Matches.Add(new MatchSession
+        {
+            Id = matchId,
+            PlayerId = entry.PlayerId,
+            ServerId = slot.ServerId,
+            Status = MatchSessionStatuses.Reserved,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now
+        });
+
+        database.MatchTickets.Add(new MatchTicket
+        {
+            Id = Guid.NewGuid(),
+            MatchId = matchId,
+            PlayerId = entry.PlayerId,
+            ServerId = slot.ServerId,
+            TicketHash = ticket.TicketHash,
+            ExpiresAtUtc = ticket.ExpiresAtUtc,
+            CreatedAtUtc = now
+        });
+
+        entry.Status = MatchQueueEntryStatuses.Assigned;
+        entry.AssignedMatchId = matchId;
+        entry.UpdatedAtUtc = now;
+        await database.SaveChangesAsync(cancellationToken);
+
+        return new MatchmakingStatusResponse(
+            MatchQueueEntryStatuses.Assigned,
+            Assignment: new MatchAssignmentResponse(
+                matchId,
+                slot.ServerId,
+                slot.PublicHost,
+                slot.PublicPort,
+                ticket.PlaintextTicket,
+                ticket.ExpiresAtUtc));
+    }
 
     private async Task<MatchmakingStatusResponse> BuildResponseAsync(
         MatchQueueEntry entry,
