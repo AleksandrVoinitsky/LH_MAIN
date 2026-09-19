@@ -43,7 +43,12 @@ if (!string.IsNullOrWhiteSpace(connectionString))
     builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
     builder.Services.AddScoped<IdentityService>();
     builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
+    builder.Services.AddScoped<MatchmakingService>();
 }
+
+builder.Services.Configure<GameServerOptions>(builder.Configuration.GetSection("GameServers"));
+builder.Services.AddSingleton<LH.Main.Backend.Api.Matchmaking.ISystemClock, LH.Main.Backend.Api.Matchmaking.SystemClock>();
+builder.Services.AddScoped<TicketService>();
 
 if (hasJwtConfiguration)
 {
