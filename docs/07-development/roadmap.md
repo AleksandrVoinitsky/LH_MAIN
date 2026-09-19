@@ -10,7 +10,7 @@
 | [01 Backend](phase-01-backend.md) | PostgreSQL, identity, JWT, профиль | 00 |
 | [02 Dedicated server](phase-02-dedicated-server.md) | Linux headless FishNet образ | 00 |
 | [03 Матчевый контур](phase-03-match-flow.md) | очередь, ticket, назначение сервера | 01, 02 |
-| [04 Сетевой фундамент](phase-04-networked-core.md) | 40 подключений, спаун, движение | 03 |
+| [04 Сетевой фундамент](phase-04-networked-core.md) | 64 подключения, спаун, движение | 03 |
 | [05 Первый игровой цикл](phase-05-gameplay-loop.md) | урон, смерть, эвакуация, награда | 04 |
 | [06 Основной матч](phase-06-core-match.md) | зона, лут, инвентарь, бой | 05 |
 | [07 Мир и PvE](phase-07-world-and-pve.md) | ИИ, транспорт, программные спауны | 06 |
