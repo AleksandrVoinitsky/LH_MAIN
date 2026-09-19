@@ -10,6 +10,7 @@
 .vs/
 .vscode/
 *.csproj
+!server/**/*.csproj
 *.sln
 !server/LH.Main.Server.sln
 *.suo
