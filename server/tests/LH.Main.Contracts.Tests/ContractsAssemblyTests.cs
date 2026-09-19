@@ -8,11 +8,13 @@ public sealed class ContractsAssemblyTests
     [Fact]
     public void ContractsAssemblyDoesNotReferenceUnityOrFishNet()
     {
-        var references = typeof(HealthStatusResponse).Assembly
+        var referencedAssemblies = typeof(MatchmakingStatusResponse)
+            .Assembly
             .GetReferencedAssemblies()
-            .Select(reference => reference.Name);
+            .Select(assembly => assembly.Name)
+            .ToArray();
 
-        Assert.DoesNotContain("UnityEngine", references);
-        Assert.DoesNotContain("FishNet", references);
+        Assert.DoesNotContain("UnityEngine", referencedAssemblies);
+        Assert.DoesNotContain("FishNet.Runtime", referencedAssemblies);
     }
 }
