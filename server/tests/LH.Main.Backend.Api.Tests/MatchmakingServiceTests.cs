@@ -135,6 +135,27 @@ public sealed class MatchmakingServiceTests(PostgreSqlFixture database)
         Assert.Equal(1, await context.MatchTickets.CountAsync());
     }
 
+    [Fact]
+    public async Task EnqueueAssignsOtherPlayerAfterAbandonedAssignmentExpires()
+    {
+        await using var context = await CreateCleanDbContextAsync();
+        var abandonedPlayerId = await CreateUserAsync(context, "abandoned-assignment");
+        var waitingPlayerId = await CreateUserAsync(context, "waiting-player");
+        await SeedSlotsAsync(context, "game-server-1");
+        var abandoned = await CreateService(context).EnqueueAsync(abandonedPlayerId, CancellationToken.None);
+        var service = CreateService(context, DateTimeOffset.Parse("2026-09-20T00:02:00Z"));
+
+        var assigned = await service.EnqueueAsync(waitingPlayerId, CancellationToken.None);
+
+        Assert.Equal("assigned", assigned.Status);
+        Assert.Equal("game-server-1", assigned.Assignment!.ServerId);
+        Assert.NotEqual(abandoned.Assignment!.MatchId, assigned.Assignment.MatchId);
+        var abandonedMatch = await context.Matches.SingleAsync(match => match.Id == abandoned.Assignment.MatchId);
+        Assert.Equal(MatchSessionStatuses.Expired, abandonedMatch.Status);
+        Assert.Equal(1, await context.GameServerSlots.CountAsync(slot => slot.Status == GameServerSlotStatuses.Occupied));
+        Assert.Equal(assigned.Assignment.MatchId, await context.GameServerSlots.Select(slot => slot.CurrentMatchId).SingleAsync());
+    }
+
     private async Task<AppDbContext> CreateCleanDbContextAsync()
     {
         var context = CreateDbContext();

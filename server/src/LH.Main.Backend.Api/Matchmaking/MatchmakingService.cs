@@ -250,6 +250,8 @@ public sealed class MatchmakingService(
         DateTimeOffset now,
         CancellationToken cancellationToken)
     {
+        await ExpireStaleAssignmentsAsync(now, cancellationToken);
+
         var slot = await database.GameServerSlots
             .AsNoTracking()
             .Where(candidate => candidate.Status == GameServerSlotStatuses.Available)
@@ -318,6 +320,63 @@ public sealed class MatchmakingService(
                 slot.PublicPort,
                 ticket.PlaintextTicket,
                 ticket.ExpiresAtUtc));
+    }
+
+    private async Task ExpireStaleAssignmentsAsync(DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        var expiredAssignments = await (
+            from ticket in database.MatchTickets.AsNoTracking()
+            join match in database.Matches.AsNoTracking() on ticket.MatchId equals match.Id
+            where ticket.ConsumedAtUtc == null
+                && ticket.ExpiresAtUtc <= now
+                && match.Status == MatchSessionStatuses.Reserved
+            select new { ticket.MatchId, ticket.ServerId })
+            .ToArrayAsync(cancellationToken);
+
+        foreach (var expired in expiredAssignments)
+        {
+            await database.Matches
+                .Where(match => match.Id == expired.MatchId && match.Status == MatchSessionStatuses.Reserved)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(match => match.Status, MatchSessionStatuses.Expired)
+                    .SetProperty(match => match.UpdatedAtUtc, now), cancellationToken);
+
+            await database.MatchQueueEntries
+                .Where(queueEntry => queueEntry.AssignedMatchId == expired.MatchId
+                    && queueEntry.Status == MatchQueueEntryStatuses.Assigned)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(queueEntry => queueEntry.Status, MatchQueueEntryStatuses.Expired)
+                    .SetProperty(queueEntry => queueEntry.UpdatedAtUtc, now), cancellationToken);
+
+            await database.GameServerSlots
+                .Where(slot => slot.ServerId == expired.ServerId && slot.CurrentMatchId == expired.MatchId)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(slot => slot.Status, GameServerSlotStatuses.Available)
+                    .SetProperty(slot => slot.CurrentMatchId, (Guid?)null)
+                    .SetProperty(slot => slot.UpdatedAtUtc, now), cancellationToken);
+
+            var trackedMatch = database.Matches.Local.FirstOrDefault(match => match.Id == expired.MatchId);
+            if (trackedMatch is not null)
+            {
+                trackedMatch.Status = MatchSessionStatuses.Expired;
+                trackedMatch.UpdatedAtUtc = now;
+            }
+
+            var trackedEntry = database.MatchQueueEntries.Local.FirstOrDefault(queueEntry => queueEntry.AssignedMatchId == expired.MatchId);
+            if (trackedEntry is not null)
+            {
+                trackedEntry.Status = MatchQueueEntryStatuses.Expired;
+                trackedEntry.UpdatedAtUtc = now;
+            }
+
+            var trackedSlot = database.GameServerSlots.Local.FirstOrDefault(slot => slot.ServerId == expired.ServerId);
+            if (trackedSlot is not null && trackedSlot.CurrentMatchId == expired.MatchId)
+            {
+                trackedSlot.Status = GameServerSlotStatuses.Available;
+                trackedSlot.CurrentMatchId = null;
+                trackedSlot.UpdatedAtUtc = now;
+            }
+        }
     }
 
     private async Task<MatchmakingStatusResponse> BuildResponseAsync(
