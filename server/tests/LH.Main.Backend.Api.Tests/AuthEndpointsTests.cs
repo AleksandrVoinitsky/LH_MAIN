@@ -1,6 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using Xunit;
 
@@ -46,7 +50,7 @@ public sealed class AuthEndpointsTests(PostgreSqlFixture database) : IClassFixtu
         await using var connection = new NpgsqlConnection(database.ConnectionString);
         await connection.OpenAsync();
         await using var command = new NpgsqlCommand(
-            "SELECT \"PasswordHash\" FROM password_credentials WHERE \"UserId\" = @userId",
+            "SELECT password_hash FROM password_credentials WHERE user_id = @userId",
             connection);
         command.Parameters.AddWithValue("userId", profile!.UserId);
         var passwordHash = (string?)await command.ExecuteScalarAsync();
@@ -67,8 +71,11 @@ public sealed class AuthEndpointsTests(PostgreSqlFixture database) : IClassFixtu
         using var response = await client.PostAsJsonAsync(
             "/v1/auth/dev-register",
             new { username = "duplicated_user", password = "correct-horse-battery-staple" });
+        var problem = await response.Content.ReadFromJsonAsync<ProblemResponse>();
 
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.NotNull(problem);
+        Assert.Equal("username_already_exists", problem.Code);
     }
 
     [Theory]
@@ -83,8 +90,10 @@ public sealed class AuthEndpointsTests(PostgreSqlFixture database) : IClassFixtu
         using var response = await client.PostAsJsonAsync(
             "/v1/auth/dev-register",
             new { username, password });
+        var problem = await response.Content.ReadFromJsonAsync<ProblemResponse>();
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.NotNull(problem);
     }
 
     [Fact]
@@ -100,12 +109,157 @@ public sealed class AuthEndpointsTests(PostgreSqlFixture database) : IClassFixtu
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
+    [Fact]
+    public async Task DevLoginIsHiddenWhenDisabled()
+    {
+        using var application = CreateApplication(enableDevRegistration: false);
+        using var response = await application.CreateClient().PostAsJsonAsync(
+            "/v1/auth/dev-login",
+            new { username = "dev_player", password = "correct-horse-battery-staple" });
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task LoginIsUnavailableWhenSigningKeyIsTooShort()
+    {
+        using var application = _factory.WithWebHostBuilder(builder =>
+        {
+            builder.UseSetting("ConnectionStrings:MainDb", database.ConnectionString);
+            builder.UseSetting("Authentication:EnableDevRegistration", "true");
+            builder.UseSetting("Authentication:JwtSigningKey", "too-short");
+            builder.UseSetting("Authentication:Issuer", "lh-main-tests");
+            builder.UseSetting("Authentication:Audience", "lh-main-tests");
+            builder.UseSetting("Authentication:AccessTokenLifetimeMinutes", "15");
+        });
+
+        using var response = await application.CreateClient().PostAsJsonAsync(
+            "/v1/auth/dev-login",
+            new { username = "dev_player", password = "correct-horse-battery-staple" });
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task LoginIssuesTokenThatAuthorizesProfileAccess()
+    {
+        var username = $"login_user_{Guid.NewGuid():N}";
+        const string password = "correct-horse-battery-staple";
+        using var application = CreateApplication(enableDevRegistration: true);
+        using var client = application.CreateClient();
+        await client.PostAsJsonAsync("/v1/auth/dev-register", new { username, password });
+
+        using var loginResponse = await client.PostAsJsonAsync("/v1/auth/dev-login", new { username, password });
+        var login = await loginResponse.Content.ReadFromJsonAsync<LoginResponse>();
+        client.DefaultRequestHeaders.Authorization = new("Bearer", login?.AccessToken);
+        using var profileResponse = await client.GetAsync("/v1/profile");
+
+        Assert.Equal(HttpStatusCode.OK, loginResponse.StatusCode);
+        Assert.NotNull(login);
+        Assert.False(string.IsNullOrWhiteSpace(login.AccessToken));
+        Assert.True(login.ExpiresAtUtc > DateTimeOffset.UtcNow);
+        Assert.Equal(HttpStatusCode.OK, profileResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task LoginDoesNotRevealWhetherUsernameExists()
+    {
+        var username = $"known_user_{Guid.NewGuid():N}";
+        using var application = CreateApplication(enableDevRegistration: true);
+        using var client = application.CreateClient();
+        await client.PostAsJsonAsync("/v1/auth/dev-register", new { username, password = "correct-horse-battery-staple" });
+
+        using var wrongPassword = await client.PostAsJsonAsync("/v1/auth/dev-login", new { username, password = "wrong-password-value" });
+        using var unknownUser = await client.PostAsJsonAsync("/v1/auth/dev-login", new { username = "unknown_user", password = "wrong-password-value" });
+
+        Assert.Equal(HttpStatusCode.Unauthorized, wrongPassword.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, unknownUser.StatusCode);
+    }
+
+    [Fact]
+    public async Task LoginReturnsNeutralProblemCodeForInvalidCredentials()
+    {
+        using var application = CreateApplication(enableDevRegistration: true);
+        using var client = application.CreateClient();
+
+        using var response = await client.PostAsJsonAsync(
+            "/v1/auth/dev-login",
+            new { username = "unknown_user", password = "wrong-password-value" });
+
+        var problem = await response.Content.ReadFromJsonAsync<ProblemResponse>();
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.NotNull(problem);
+        Assert.Equal("invalid_credentials", problem.Code);
+    }
+
+    [Fact]
+    public async Task ProfileRejectsTokenForNonexistentUser()
+    {
+        using var application = CreateApplication(enableDevRegistration: true);
+        using var client = application.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new("Bearer", CreateToken(Guid.NewGuid()));
+
+        using var response = await client.GetAsync("/v1/profile");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ProfileRejectsRequestWithoutToken()
+    {
+        using var application = CreateApplication(enableDevRegistration: true);
+        using var response = await application.CreateClient().GetAsync("/v1/profile");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ProfileRejectsExpiredToken()
+    {
+        var username = $"expired_user_{Guid.NewGuid():N}";
+        using var application = CreateApplication(enableDevRegistration: true);
+        using var client = application.CreateClient();
+        await client.PostAsJsonAsync(
+            "/v1/auth/dev-register",
+            new { username, password = "correct-horse-battery-staple" });
+        client.DefaultRequestHeaders.Authorization = new("Bearer", CreateToken(Guid.NewGuid(), DateTime.UtcNow.AddMinutes(-1)));
+
+        using var response = await client.GetAsync("/v1/profile");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
     private WebApplicationFactory<Program> CreateApplication(bool enableDevRegistration) =>
         _factory.WithWebHostBuilder(builder =>
         {
             builder.UseSetting("ConnectionStrings:MainDb", database.ConnectionString);
             builder.UseSetting("Authentication:EnableDevRegistration", enableDevRegistration.ToString());
+            builder.UseSetting("Authentication:JwtSigningKey", "test-signing-key-that-is-at-least-thirty-two-characters");
+            builder.UseSetting("Authentication:Issuer", "lh-main-tests");
+            builder.UseSetting("Authentication:Audience", "lh-main-tests");
+            builder.UseSetting("Authentication:AccessTokenLifetimeMinutes", "15");
         });
 
     private sealed record RegistrationResponse(Guid UserId, string Username, DateTimeOffset CreatedAtUtc);
+
+    private sealed record LoginResponse(string AccessToken, DateTimeOffset ExpiresAtUtc);
+
+    private sealed record ProblemResponse(string? Code);
+
+    private static string CreateToken(Guid userId, DateTime? expiresAt = null)
+    {
+        var expires = expiresAt ?? DateTime.UtcNow.AddMinutes(15);
+        var securityKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes("test-signing-key-that-is-at-least-thirty-two-characters"));
+        var token = new JwtSecurityToken(
+            issuer: "lh-main-tests",
+            audience: "lh-main-tests",
+            claims: [new Claim(JwtRegisteredClaimNames.Sub, userId.ToString())],
+            notBefore: expires.AddMinutes(-15),
+            expires: expires,
+            signingCredentials: new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256));
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
 }

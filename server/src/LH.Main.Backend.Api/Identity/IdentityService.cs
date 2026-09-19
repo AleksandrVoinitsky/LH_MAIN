@@ -10,6 +10,15 @@ namespace LH.Main.Backend.Api.Identity;
 
 public sealed partial class IdentityService(AppDbContext database, IPasswordHasher<User> passwordHasher)
 {
+    private static readonly User UnknownUser = new()
+    {
+        Id = Guid.Empty,
+        NormalizedUsername = "UNKNOWN",
+        CreatedAtUtc = DateTimeOffset.UnixEpoch
+    };
+
+    private static readonly string UnknownUserPasswordHash = new PasswordHasher<User>().HashPassword(UnknownUser, string.Empty);
+
     public async Task<RegistrationResult> RegisterAsync(DevCredentialsRequest request, CancellationToken cancellationToken)
     {
         if (!IsValid(request, out var username, out var password))
@@ -36,6 +45,33 @@ public sealed partial class IdentityService(AppDbContext database, IPasswordHash
         }
 
         return RegistrationResult.Success(new PlayerProfileResponse(user.Id, profile.Username, profile.CreatedAtUtc));
+    }
+
+    public async Task<LoginResult> LoginAsync(DevCredentialsRequest request, CancellationToken cancellationToken)
+    {
+        var normalizedUsername = request.Username?.Trim().ToUpperInvariant() ?? string.Empty;
+        var user = await database.Users
+            .Include(candidate => candidate.PasswordCredential)
+            .SingleOrDefaultAsync(candidate => candidate.NormalizedUsername == normalizedUsername, cancellationToken);
+
+        var password = request.Password ?? string.Empty;
+        var credential = user?.PasswordCredential;
+        var verificationResult = passwordHasher.VerifyHashedPassword(
+            user ?? UnknownUser,
+            credential?.PasswordHash ?? UnknownUserPasswordHash,
+            password);
+        return verificationResult is PasswordVerificationResult.Success or PasswordVerificationResult.SuccessRehashNeeded
+            && user is not null
+            ? LoginResult.Success(user.Id)
+            : LoginResult.Invalid;
+    }
+
+    public async Task<PlayerProfileResponse?> GetProfileAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        return await database.PlayerProfiles
+            .Where(profile => profile.UserId == userId)
+            .Select(profile => new PlayerProfileResponse(profile.UserId, profile.Username, profile.CreatedAtUtc))
+            .SingleOrDefaultAsync(cancellationToken);
     }
 
     private static bool IsValid(DevCredentialsRequest request, out string username, out string password)
@@ -66,4 +102,11 @@ public enum RegistrationStatus
     Success,
     Invalid,
     Duplicate
+}
+
+public sealed record LoginResult(Guid? UserId)
+{
+    public static LoginResult Invalid { get; } = new((Guid?)null);
+
+    public static LoginResult Success(Guid userId) => new(userId);
 }
