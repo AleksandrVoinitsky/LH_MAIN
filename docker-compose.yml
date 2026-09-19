@@ -43,6 +43,18 @@ services:
       dockerfile: docker/game-server/Dockerfile
     environment:
       GAME_SERVER_ID: game-server-1
+      GAME_SERVER_HTTP_PORT: ${GAME_SERVER_HTTP_CONTAINER_PORT:?Set GAME_SERVER_HTTP_CONTAINER_PORT in .env}
+      GAME_SERVER_NETWORK_PORT: ${GAME_SERVER_NETWORK_CONTAINER_PORT:?Set GAME_SERVER_NETWORK_CONTAINER_PORT in .env}
+      GAME_SERVER_PUBLIC_HOST: ${GAME_SERVER_PUBLIC_HOST:?Set GAME_SERVER_PUBLIC_HOST in .env}
+      GAME_SERVER_PUBLIC_NETWORK_PORT: ${GAME_SERVER_1_NETWORK_HOST_PORT:?Set GAME_SERVER_1_NETWORK_HOST_PORT in .env}
+    ports:
+      - "127.0.0.1:${GAME_SERVER_1_HTTP_HOST_PORT:?Set GAME_SERVER_1_HTTP_HOST_PORT in .env}:${GAME_SERVER_HTTP_CONTAINER_PORT:?Set GAME_SERVER_HTTP_CONTAINER_PORT in .env}/tcp"
+      - "127.0.0.1:${GAME_SERVER_1_NETWORK_HOST_PORT:?Set GAME_SERVER_1_NETWORK_HOST_PORT in .env}:${GAME_SERVER_NETWORK_CONTAINER_PORT:?Set GAME_SERVER_NETWORK_CONTAINER_PORT in .env}/udp"
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent http://localhost:$${GAME_SERVER_HTTP_PORT}/health/ready || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
 
   game-server-2:
     profiles: ["game-servers"]
@@ -51,6 +63,18 @@ services:
       dockerfile: docker/game-server/Dockerfile
     environment:
       GAME_SERVER_ID: game-server-2
+      GAME_SERVER_HTTP_PORT: ${GAME_SERVER_HTTP_CONTAINER_PORT:?Set GAME_SERVER_HTTP_CONTAINER_PORT in .env}
+      GAME_SERVER_NETWORK_PORT: ${GAME_SERVER_NETWORK_CONTAINER_PORT:?Set GAME_SERVER_NETWORK_CONTAINER_PORT in .env}
+      GAME_SERVER_PUBLIC_HOST: ${GAME_SERVER_PUBLIC_HOST:?Set GAME_SERVER_PUBLIC_HOST in .env}
+      GAME_SERVER_PUBLIC_NETWORK_PORT: ${GAME_SERVER_2_NETWORK_HOST_PORT:?Set GAME_SERVER_2_NETWORK_HOST_PORT in .env}
+    ports:
+      - "127.0.0.1:${GAME_SERVER_2_HTTP_HOST_PORT:?Set GAME_SERVER_2_HTTP_HOST_PORT in .env}:${GAME_SERVER_HTTP_CONTAINER_PORT:?Set GAME_SERVER_HTTP_CONTAINER_PORT in .env}/tcp"
+      - "127.0.0.1:${GAME_SERVER_2_NETWORK_HOST_PORT:?Set GAME_SERVER_2_NETWORK_HOST_PORT in .env}:${GAME_SERVER_NETWORK_CONTAINER_PORT:?Set GAME_SERVER_NETWORK_CONTAINER_PORT in .env}/udp"
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent http://localhost:$${GAME_SERVER_HTTP_PORT}/health/ready || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
 
 volumes:
   postgres-data:
