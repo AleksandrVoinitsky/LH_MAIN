@@ -349,7 +349,7 @@ MonoBehaviour:
   _changeFrameRate: 1
   _frameRate: 500
   _shareIds: 1
-  _startOnHeadless: 1
+  _startOnHeadless: 0
 --- !u!114 &1339331436
 MonoBehaviour:
   m_ObjectHideFlags: 0

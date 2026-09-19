@@ -15,6 +15,7 @@ namespace LH.Main.Unity.Server
         private GameServerConfig? _config;
         private GameServerState _state = GameServerState.Failed;
         private DateTime _startedAtUtc;
+        private bool _subscribedToServerState;
 
         private void Awake()
         {
@@ -29,26 +30,35 @@ namespace LH.Main.Unity.Server
                 return;
             }
 
+        }
+
+        private void Start()
+        {
+            GameServerConfig? config = _config;
+            if (config == null || !config.Validate(out _))
+                return;
+
             if (_networkManager == null)
                 _networkManager = FindFirstObjectByType<NetworkManager>();
 
             if (_transport == null)
                 _transport = FindFirstObjectByType<Tugboat>();
 
-            if (_networkManager == null || _transport == null)
+            if (_networkManager == null || _networkManager.ServerManager == null || _transport == null)
             {
                 _state = GameServerState.Failed;
-                Debug.LogError("FishNet NetworkManager and Tugboat transport are required in the server scene.");
+                Debug.LogError("Initialized FishNet NetworkManager and Tugboat transport are required in the server scene.");
                 Application.Quit(1);
                 return;
             }
 
-            _transport.SetPort(_config.NetworkPort);
+            _transport.SetPort(config.NetworkPort);
             _networkManager.ServerManager.OnServerConnectionState += OnServerConnectionState;
+            _subscribedToServerState = true;
 
             try
             {
-                _healthServer.Start(_config, CreateStatus, IsReady);
+                _healthServer.Start(config, CreateStatus, IsReady);
             }
             catch (Exception ex)
             {
@@ -67,14 +77,15 @@ namespace LH.Main.Unity.Server
                 return;
             }
 
-            Debug.Log($"Game server {_config.ServerId} starting on network port {_config.NetworkPort} and health port {_config.HttpPort}.");
+            Debug.Log($"Game server {config.ServerId} starting on network port {config.NetworkPort} and health port {config.HttpPort}.");
         }
 
         private void OnDestroy()
         {
-            if (_networkManager != null)
+            if (_subscribedToServerState && _networkManager != null && _networkManager.ServerManager != null)
                 _networkManager.ServerManager.OnServerConnectionState -= OnServerConnectionState;
 
+            _subscribedToServerState = false;
             _healthServer.Stop();
         }
 
