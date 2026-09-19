@@ -14,7 +14,18 @@
 - [Лобби и социальные системы](04-ui-social/lobby-and-social.md)
 - [Технические ограничения](05-technical/technical-constraints.md)
 
+## Архитектура и разработка
+
+- [Системная архитектура](06-architecture/system-architecture.md)
+- [Контракты сервисов](06-architecture/service-contracts.md)
+- [Сеть и авторитетность](06-architecture/networking.md)
+- [Данные и PostgreSQL](06-architecture/data-and-persistence.md)
+- [Развёртывание разработки](06-architecture/deployment.md)
+- [Дорожная карта разработки](07-development/roadmap.md)
+- [Единые критерии готовности](07-development/definition-of-done.md)
+
+Перед началом реализации агенты обязаны прочитать дорожную карту, документ текущей фазы, критерии готовности и связанные архитектурные документы.
+
 ## Статус источников
 
 Извлечены все 33 файла исходного архива: 30 PDF, один DOCX и два XLSX. Исходный текст и промежуточные файлы находятся в игнорируемом `_documentation-source/` и не являются частью документации в Git.
-
