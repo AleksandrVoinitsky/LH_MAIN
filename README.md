@@ -35,7 +35,49 @@ docker compose up --build postgres backend-api
 отдельные обязательные значения `Authentication__JwtSigningKey`,
 `Authentication__Issuer`, `Authentication__Audience` и
 `Authentication__AccessTokenLifetimeMinutes` и не включать dev-регистрацию.
-Контейнеры `game-server-1` и
-`game-server-2` — намеренные placeholders для будущих Unity Linux headless
-build; они запускаются только с профилем `game-servers` и не являются игровыми
-серверами.
+## Phase 02: локальные Unity dedicated servers
+
+Phase 02 добавляет два локальных Unity Linux headless game-server контейнера:
+`game-server-1` и `game-server-2`. Они запускаются только через Compose profile
+`game-servers`, публикуют HTTP health/status endpoint и UDP game port, но backend
+matchmaking/allocation отложены до Phase 03.
+
+Сборка Unity Linux headless player выполняется локально. Выходной каталог
+`Builds/` игнорируется Git и не должен коммититься. Если команда сборки Unity
+завершается ошибкой `Unsupported build target: StandaloneLinux64`, установите
+Unity Linux Build Support для версии из `ProjectSettings/ProjectVersion.txt`,
+затем повторите сборку.
+
+```cmd
+Unity -batchmode -quit -projectPath . -executeMethod LH.Main.Unity.Editor.GameServerBuild.BuildLinuxHeadless
+```
+
+После появления `Builds/GameServer/LinuxHeadless/LH.Main.GameServer.x86_64`
+можно собрать и запустить контейнеры:
+
+```cmd
+docker compose --env-file .env.example --profile game-servers build game-server-1 game-server-2
+docker compose --env-file .env.example --profile game-servers up --detach --wait game-server-1 game-server-2
+```
+
+Проверка готовности и статуса:
+
+```cmd
+curl http://localhost:8091/health/ready
+curl http://localhost:8092/health/ready
+curl http://localhost:8091/status
+curl http://localhost:8092/status
+```
+
+Перезапуск одного сервера и просмотр состояния:
+
+```cmd
+docker compose --env-file .env.example --profile game-servers restart game-server-1
+docker compose --env-file .env.example --profile game-servers ps
+```
+
+Остановка Phase 02 контейнеров:
+
+```cmd
+docker compose --env-file .env.example --profile game-servers down
+```
