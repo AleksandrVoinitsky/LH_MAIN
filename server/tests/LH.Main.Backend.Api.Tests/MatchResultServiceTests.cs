@@ -81,6 +81,47 @@ public sealed class MatchResultServiceTests(PostgreSqlFixture database)
         Assert.Equal(1, await context.RewardTransactions.CountAsync());
     }
 
+    [Fact]
+    public async Task SubmitAsyncRejectsSameMatchWithDifferentResultId()
+    {
+        await using var context = await CreateCleanDbContextAsync();
+        var playerId = await CreateAssignedMatchAsync(context, MatchId, "game-server-1", "match-conflict-player");
+        var service = CreateService(context);
+        await service.SubmitAsync(ValidRequest(MatchId, "game-server-1", ResultId, playerId, "extracted"), "local-shared-game-server-key", CancellationToken.None);
+
+        var conflict = await service.SubmitAsync(ValidRequest(MatchId, "game-server-1", Guid.Parse("44444444-4444-4444-4444-444444444444"), playerId, "extracted"), "local-shared-game-server-key", CancellationToken.None);
+
+        Assert.Equal("result_conflict", conflict.ConflictCode);
+        Assert.Equal(1, await context.MatchResults.CountAsync());
+        Assert.Equal(1, await context.RewardTransactions.CountAsync());
+    }
+
+    [Fact]
+    public async Task SubmitAsyncTreatsConcurrentDuplicateAsDuplicate()
+    {
+        await using (var setupContext = await CreateCleanDbContextAsync())
+        {
+            await CreateAssignedMatchAsync(setupContext, MatchId, "game-server-1", "concurrent-player");
+        }
+
+        var request = ValidRequest(MatchId, "game-server-1", ResultId, outcome: "extracted");
+        await using var firstContext = CreateDbContext();
+        await using var secondContext = CreateDbContext();
+        var firstService = CreateService(firstContext);
+        var secondService = CreateService(secondContext);
+
+        var results = await Task.WhenAll(
+            firstService.SubmitAsync(request, "local-shared-game-server-key", CancellationToken.None),
+            secondService.SubmitAsync(request, "local-shared-game-server-key", CancellationToken.None));
+
+        Assert.Contains(results, result => result.Response is { Duplicate: false, NewRewardTransactions: 1 });
+        Assert.Contains(results, result => result.Response is { Duplicate: true, NewRewardTransactions: 0 });
+        await using var verificationContext = CreateDbContext();
+        Assert.Equal(1, await verificationContext.MatchResults.CountAsync());
+        Assert.Equal(1, await verificationContext.MatchResultParticipants.CountAsync());
+        Assert.Equal(1, await verificationContext.RewardTransactions.CountAsync());
+    }
+
     private async Task<AppDbContext> CreateCleanDbContextAsync()
     {
         var context = CreateDbContext();

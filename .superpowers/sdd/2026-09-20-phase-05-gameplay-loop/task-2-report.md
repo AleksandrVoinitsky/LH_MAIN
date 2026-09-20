@@ -90,4 +90,85 @@ warning: in the working copy of 'server/tests/LH.Main.Backend.Api.Tests/MatchRes
 ## Issues Or Concerns
 
 - Existing unrelated dirty and untracked workspace files were present before this task and were not modified.
-- The service currently relies on the existing database unique constraints and does not add extra retry handling for concurrent duplicate submissions beyond the scoped tests and Task 2 requirements.
+- Fix Round 1 below adds explicit recovery for expected unique-constraint failures from concurrent duplicate submissions.
+
+## Fix Round 1
+
+### What Changed
+
+- Added coverage for same `MatchId` submitted with a different `ResultId`.
+- Added coverage for concurrent duplicate submissions from separate `AppDbContext` instances.
+- Updated `MatchResultService` to check existing `MatchResult` rows by either `ResultId` or `MatchId` before inserting.
+- Updated duplicate/conflict resolution so duplicate is returned only when the stored row has the same `ResultId`, `MatchId`, and payload hash; otherwise `result_conflict` is returned.
+- Wrapped persistence in expected PostgreSQL unique-constraint handling, clears EF tracked state after the failed save, re-queries the stored result, and returns duplicate or conflict instead of surfacing `DbUpdateException`.
+
+### RED Command
+
+```powershell
+dotnet test "server\tests\LH.Main.Backend.Api.Tests\LH.Main.Backend.Api.Tests.csproj" --configuration Release --filter FullyQualifiedName~MatchResultServiceTests
+```
+
+### RED Output
+
+```text
+Не пройден LH.Main.Backend.Api.Tests.MatchResultServiceTests.SubmitAsyncTreatsConcurrentDuplicateAsDuplicate [217 ms]
+Сообщение об ошибке:
+ Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.
+---- Npgsql.PostgresException : 23505: duplicate key value violates unique constraint "pk_match_results"
+
+Не пройден LH.Main.Backend.Api.Tests.MatchResultServiceTests.SubmitAsyncRejectsSameMatchWithDifferentResultId [78 ms]
+Сообщение об ошибке:
+ Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.
+---- Npgsql.PostgresException : 23505: duplicate key value violates unique constraint "ix_match_results_match_id"
+
+Не пройден!: не пройдено     2, пройдено     4, пропущено     0, всего     6, длительность 2 s. - LH.Main.Backend.Api.Tests.dll (net10.0)
+```
+
+### GREEN Command
+
+```powershell
+dotnet test "server\tests\LH.Main.Backend.Api.Tests\LH.Main.Backend.Api.Tests.csproj" --configuration Release --filter FullyQualifiedName~MatchResultServiceTests
+```
+
+### GREEN Output
+
+```text
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+  LH.Main.Contracts -> D:\LH_MAIN-phase-02\server\src\LH.Main.Contracts\bin\Release\net10.0\LH.Main.Contracts.dll
+  LH.Main.Backend.Api -> D:\LH_MAIN-phase-02\server\src\LH.Main.Backend.Api\bin\Release\net10.0\LH.Main.Backend.Api.dll
+  LH.Main.Backend.Api.Tests -> D:\LH_MAIN-phase-02\server\tests\LH.Main.Backend.Api.Tests\bin\Release\net10.0\LH.Main.Backend.Api.Tests.dll
+Тестовый запуск для D:\LH_MAIN-phase-02\server\tests\LH.Main.Backend.Api.Tests\bin\Release\net10.0\LH.Main.Backend.Api.Tests.dll (.NETCoreApp,Version=v10.0)
+Общее количество тестовых файлов (1), соответствующих указанному шаблону.
+
+Пройден!   : не пройдено     0, пройдено     6, пропущено     0, всего     6, длительность 2 s. - LH.Main.Backend.Api.Tests.dll (net10.0)
+```
+
+### Whitespace Check
+
+```powershell
+git diff --check -- server/src server/tests
+```
+
+```text
+warning: in the working copy of 'server/src/LH.Main.Backend.Api/MatchResults/MatchResultService.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'server/tests/LH.Main.Backend.Api.Tests/MatchResultServiceTests.cs', LF will be replaced by CRLF the next time Git touches it
+```
+
+### Files Changed In Fix Round 1
+
+- `server/src/LH.Main.Backend.Api/MatchResults/MatchResultService.cs`
+- `server/tests/LH.Main.Backend.Api.Tests/MatchResultServiceTests.cs`
+- `.superpowers/sdd/2026-09-20-phase-05-gameplay-loop/task-2-report.md`
+
+### Fix Round 1 Self-Review Findings
+
+- No endpoint mapping was added.
+- No wallet/profile balance fields were added.
+- No Unity files were changed by this fix.
+- Unique constraint recovery handles the reviewed duplicate-result and duplicate-match constraints without masking unrelated database errors.
+
+### Fix Round 1 Issues Or Concerns
+
+- Existing unrelated dirty and untracked workspace files remain untouched.
+- `git diff --check` still prints LF-to-CRLF warnings, but no whitespace errors.

@@ -7,6 +7,7 @@ using LH.Main.Backend.Api.Persistence.Entities;
 using LH.Main.Contracts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Npgsql;
 
 namespace LH.Main.Backend.Api.MatchResults;
 
@@ -36,59 +37,86 @@ public sealed class MatchResultService(
             return MatchResultSubmissionResult.Conflict("match_server_mismatch");
 
         string payloadHash = ComputePayloadHash(request);
-        var existing = await database.MatchResults.SingleOrDefaultAsync(result => result.Id == request.ResultId, cancellationToken);
+        var existing = await FindExistingResultAsync(request, cancellationToken);
         if (existing is not null)
         {
-            if (existing.MatchId == request.MatchId && string.Equals(existing.PayloadHash, payloadHash, StringComparison.Ordinal))
+            return ExistingResultResponse(existing, request, payloadHash);
+        }
+
+        try
+        {
+            await using var transaction = await database.Database.BeginTransactionAsync(cancellationToken);
+            database.MatchResults.Add(new MatchResult
             {
-                return MatchResultSubmissionResult.Accepted(new MatchResultSubmissionResponse(true, request.ResultId, 0, true));
+                Id = request.ResultId,
+                MatchId = request.MatchId,
+                ServerId = request.ServerId,
+                CompletedAtUtc = request.CompletedAtUtc,
+                ReceivedAtUtc = clock.UtcNow,
+                PayloadHash = payloadHash
+            });
+
+            foreach (var participant in request.Participants)
+            {
+                database.MatchResultParticipants.Add(new MatchResultParticipant
+                {
+                    Id = Guid.NewGuid(),
+                    MatchResultId = request.ResultId,
+                    PlayerId = participant.PlayerId,
+                    Outcome = participant.Outcome,
+                    SurvivedSeconds = participant.SurvivedSeconds,
+                    DamageTaken = participant.DamageTaken,
+                    DamageApplied = participant.DamageApplied,
+                    RewardCode = participant.RewardCode
+                });
+                database.RewardTransactions.Add(new RewardTransaction
+                {
+                    Id = Guid.NewGuid(),
+                    PlayerId = participant.PlayerId,
+                    MatchId = request.MatchId,
+                    MatchResultId = request.ResultId,
+                    RewardCode = participant.RewardCode,
+                    Amount = RewardAmount(participant.Outcome),
+                    CreatedAtUtc = clock.UtcNow
+                });
             }
 
-            return MatchResultSubmissionResult.Conflict("result_conflict");
+            match.Status = MatchSessionStatuses.Completed;
+            match.UpdatedAtUtc = clock.UtcNow;
+            await database.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+            return MatchResultSubmissionResult.Accepted(new MatchResultSubmissionResponse(true, request.ResultId, request.Participants.Count, false));
         }
-
-        await using var transaction = await database.Database.BeginTransactionAsync(cancellationToken);
-        database.MatchResults.Add(new MatchResult
+        catch (DbUpdateException exception) when (IsUniqueViolation(exception))
         {
-            Id = request.ResultId,
-            MatchId = request.MatchId,
-            ServerId = request.ServerId,
-            CompletedAtUtc = request.CompletedAtUtc,
-            ReceivedAtUtc = clock.UtcNow,
-            PayloadHash = payloadHash
-        });
-
-        foreach (var participant in request.Participants)
-        {
-            database.MatchResultParticipants.Add(new MatchResultParticipant
-            {
-                Id = Guid.NewGuid(),
-                MatchResultId = request.ResultId,
-                PlayerId = participant.PlayerId,
-                Outcome = participant.Outcome,
-                SurvivedSeconds = participant.SurvivedSeconds,
-                DamageTaken = participant.DamageTaken,
-                DamageApplied = participant.DamageApplied,
-                RewardCode = participant.RewardCode
-            });
-            database.RewardTransactions.Add(new RewardTransaction
-            {
-                Id = Guid.NewGuid(),
-                PlayerId = participant.PlayerId,
-                MatchId = request.MatchId,
-                MatchResultId = request.ResultId,
-                RewardCode = participant.RewardCode,
-                Amount = RewardAmount(participant.Outcome),
-                CreatedAtUtc = clock.UtcNow
-            });
+            database.ChangeTracker.Clear();
+            var savedResult = await FindExistingResultAsync(request, cancellationToken);
+            return savedResult is null
+                ? MatchResultSubmissionResult.Conflict("result_conflict")
+                : ExistingResultResponse(savedResult, request, payloadHash);
         }
-
-        match.Status = MatchSessionStatuses.Completed;
-        match.UpdatedAtUtc = clock.UtcNow;
-        await database.SaveChangesAsync(cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
-        return MatchResultSubmissionResult.Accepted(new MatchResultSubmissionResponse(true, request.ResultId, request.Participants.Count, false));
     }
+
+    private async Task<MatchResult?> FindExistingResultAsync(MatchResultSubmissionRequest request, CancellationToken cancellationToken) =>
+        await database.MatchResults
+            .Where(result => result.Id == request.ResultId || result.MatchId == request.MatchId)
+            .OrderByDescending(result => result.Id == request.ResultId)
+            .FirstOrDefaultAsync(cancellationToken);
+
+    private static MatchResultSubmissionResult ExistingResultResponse(MatchResult existing, MatchResultSubmissionRequest request, string payloadHash)
+    {
+        if (existing.Id == request.ResultId
+            && existing.MatchId == request.MatchId
+            && string.Equals(existing.PayloadHash, payloadHash, StringComparison.Ordinal))
+        {
+            return MatchResultSubmissionResult.Accepted(new MatchResultSubmissionResponse(true, request.ResultId, 0, true));
+        }
+
+        return MatchResultSubmissionResult.Conflict("result_conflict");
+    }
+
+    private static bool IsUniqueViolation(DbUpdateException exception) =>
+        exception.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation };
 
     private static string? ValidateRequest(MatchResultSubmissionRequest request)
     {
