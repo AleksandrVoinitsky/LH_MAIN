@@ -65,8 +65,12 @@ public sealed class GameServerStatusTests
         string json = status.ToJson();
 
         Assert.That(json, Does.Contain("\"acceptedDamageEvents\":2"));
+        Assert.That(json, Does.Contain("\"rejectedDamageEvents\":1"));
         Assert.That(json, Does.Contain("\"extractedPlayers\":3"));
+        Assert.That(json, Does.Contain("\"deadPlayers\":4"));
+        Assert.That(json, Does.Contain("\"submittedMatchResults\":1"));
         Assert.That(json, Does.Contain("\"duplicateMatchResults\":1"));
+        Assert.That(json, Does.Contain("\"failedMatchResults\":0"));
     }
 
     [Test]

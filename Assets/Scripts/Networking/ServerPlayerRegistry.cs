@@ -79,6 +79,23 @@ namespace LH.Main.Unity.Networking
             return false;
         }
 
+        public PlayerStateChange ApplyTechnicalDamage(TechnicalDamageEvent damage)
+        {
+            if (!_playersByPlayerId.TryGetValue(damage.TargetPlayerId, out RegisteredPlayer registeredPlayer))
+            {
+                GameServerMetrics.RecordDamageRejected("target_not_registered");
+                return PlayerStateChange.Reject("target_not_registered", PlayerLifeState.Disconnected);
+            }
+
+            PlayerStateChange change = registeredPlayer.StateMachine.ApplyDamage(damage);
+            if (change.Accepted)
+                GameServerMetrics.RecordDamageAccepted();
+            else
+                GameServerMetrics.RecordDamageRejected(change.Reason);
+
+            return change;
+        }
+
         public IReadOnlyList<PlayerResultSnapshot> SnapshotResults(DateTime utcNow)
         {
             var results = new List<PlayerResultSnapshot>(_playersByPlayerId.Count);

@@ -108,3 +108,89 @@ XML evidence from `task-6-green.xml`:
 
 - `NetworkPlayerController` only records metrics for life state transitions routed through `ApplyServerLifeState`; direct `PlayerStateMachine` mutations are summarized through registry snapshots instead.
 - The initial GREEN command with `-quit` exited successfully before producing XML, so GREEN evidence uses the no-`-quit` rerun as instructed.
+
+## Fix Round 1
+
+### What changed
+
+- Expanded `ToJsonIncludesGameplayLoopMetrics` to assert all seven required camelCase fields:
+  - `acceptedDamageEvents`
+  - `rejectedDamageEvents`
+  - `extractedPlayers`
+  - `deadPlayers`
+  - `submittedMatchResults`
+  - `duplicateMatchResults`
+  - `failedMatchResults`
+- Added `ServerPlayerRegistry.ApplyTechnicalDamage(TechnicalDamageEvent)` as a small server-owned technical damage entry point.
+- Wired accepted damage results to `GameServerMetrics.RecordDamageAccepted()`.
+- Wired rejected damage results, including missing targets, to `GameServerMetrics.RecordDamageRejected(...)`.
+- Wrapped `GameServerBootstrap.FinalizeMatchForLoadRunnerAsync` in local `try/catch`, records `failedMatchResults`, and logs only the exception type.
+
+### RED command/output
+
+Command:
+
+```powershell
+& "C:\Program Files\Unity\Hub\Editor\6000.3.14f1\Editor\Unity.exe" -batchmode -quit -projectPath "D:\LH_MAIN-phase-02" -runTests -testPlatform EditMode -testResults "D:\LH_MAIN-phase-02\task-6-fix1-red.xml" -logFile "D:\LH_MAIN-phase-02\Unity-Task6-Fix1-Red.log"
+```
+
+Output:
+
+```text
+Aborting batchmode due to failure:
+Scripts have compiler errors.
+```
+
+Expected failure evidence from `Unity-Task6-Fix1-Red.log`:
+
+```text
+Assets\Tests\EditMode\ServerPlayerRegistryTests.cs(132,47): error CS1061: 'ServerPlayerRegistry' does not contain a definition for 'ApplyTechnicalDamage' and no accessible extension method 'ApplyTechnicalDamage' accepting a first argument of type 'ServerPlayerRegistry' could be found (are you missing a using directive or an assembly reference?)
+Assets\Tests\EditMode\ServerPlayerRegistryTests.cs(134,47): error CS1061: 'ServerPlayerRegistry' does not contain a definition for 'ApplyTechnicalDamage' and no accessible extension method 'ApplyTechnicalDamage' accepting a first argument of type 'ServerPlayerRegistry' could be found (are you missing a using directive or an assembly reference?)
+Scripts have compiler errors.
+```
+
+### GREEN command/output
+
+The first GREEN command with `-quit` returned without producing `task-6-fix1-green.xml`, so I reran the same test args without `-quit` per controller ruling.
+
+Command:
+
+```powershell
+& "C:\Program Files\Unity\Hub\Editor\6000.3.14f1\Editor\Unity.exe" -batchmode -projectPath "D:\LH_MAIN-phase-02" -runTests -testPlatform EditMode -testResults "D:\LH_MAIN-phase-02\task-6-fix1-green.xml" -logFile "D:\LH_MAIN-phase-02\Unity-Task6-Fix1-Green-NoQuit.log"
+```
+
+Output evidence from `Unity-Task6-Fix1-Green-NoQuit.log`:
+
+```text
+Test run completed. Exiting with code 0 (Ok). Run completed.
+```
+
+XML evidence from `task-6-fix1-green.xml`:
+
+```xml
+<test-run id="2" testcasecount="74" result="Passed" total="74" passed="74" failed="0" inconclusive="0" skipped="0" asserts="0">
+```
+
+### Diff check
+
+Command:
+
+```powershell
+git diff --check -- Assets/Scripts/Networking Assets/Scripts/Server Assets/Tests/EditMode
+```
+
+Output:
+
+```text
+warning: in the working copy of 'Assets/Scripts/Networking/ServerPlayerRegistry.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Server/GameServerBootstrap.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Tests/EditMode/GameServerStatusTests.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Tests/EditMode/ServerPlayerRegistryTests.cs', LF will be replaced by CRLF the next time Git touches it
+```
+
+Result: no whitespace errors; line-ending warnings only.
+
+### Fix round 1 concerns
+
+- The technical damage entry point remains intentionally narrow and server-owned; no weapons, ballistics, or hit detection were added.
+- The no-`-quit` Unity rerun was required again to produce XML evidence.

@@ -228,28 +228,36 @@ namespace LH.Main.Unity.Server
 
         private async System.Threading.Tasks.Task FinalizeMatchForLoadRunnerAsync()
         {
-            GameServerConfig config = _config;
-            MatchResultSubmitter submitter = _matchResultSubmitter;
-            if (config == null || submitter == null || _playerRegistry == null)
-                return;
+            try
+            {
+                GameServerConfig config = _config;
+                MatchResultSubmitter submitter = _matchResultSubmitter;
+                if (config == null || submitter == null || _playerRegistry == null)
+                    return;
 
-            MethodInfo matchIdMethod = _playerRegistry.GetType().GetMethod("TryGetMatchId", BindingFlags.Public | BindingFlags.Instance);
-            object[] matchIdArguments = { Guid.Empty };
-            if (matchIdMethod == null || !(bool)matchIdMethod.Invoke(_playerRegistry, matchIdArguments))
-                return;
+                MethodInfo matchIdMethod = _playerRegistry.GetType().GetMethod("TryGetMatchId", BindingFlags.Public | BindingFlags.Instance);
+                object[] matchIdArguments = { Guid.Empty };
+                if (matchIdMethod == null || !(bool)matchIdMethod.Invoke(_playerRegistry, matchIdArguments))
+                    return;
 
-            var matchId = (Guid)matchIdArguments[0];
-            MethodInfo snapshotMethod = _playerRegistry.GetType().GetMethod("SnapshotResults", BindingFlags.Public | BindingFlags.Instance);
-            var players = snapshotMethod?.Invoke(_playerRegistry, new object[] { DateTime.UtcNow }) as System.Collections.Generic.IReadOnlyList<PlayerResultSnapshot>;
-            if (players == null)
-                return;
+                var matchId = (Guid)matchIdArguments[0];
+                MethodInfo snapshotMethod = _playerRegistry.GetType().GetMethod("SnapshotResults", BindingFlags.Public | BindingFlags.Instance);
+                var players = snapshotMethod?.Invoke(_playerRegistry, new object[] { DateTime.UtcNow }) as System.Collections.Generic.IReadOnlyList<PlayerResultSnapshot>;
+                if (players == null)
+                    return;
 
-            MatchResultPayload payload = MatchResultBuilder.Build(matchId, config.ServerId, players, DateTime.UtcNow);
-            MatchResultSubmissionOutcome outcome = await submitter.SubmitAsync(payload, System.Threading.CancellationToken.None);
-            if (outcome.Accepted)
-                InvokeMetrics("RecordMatchResultSubmitted", outcome.Duplicate);
-            else
+                MatchResultPayload payload = MatchResultBuilder.Build(matchId, config.ServerId, players, DateTime.UtcNow);
+                MatchResultSubmissionOutcome outcome = await submitter.SubmitAsync(payload, System.Threading.CancellationToken.None);
+                if (outcome.Accepted)
+                    InvokeMetrics("RecordMatchResultSubmitted", outcome.Duplicate);
+                else
+                    InvokeMetrics("RecordMatchResultFailed");
+            }
+            catch (Exception ex)
+            {
                 InvokeMetrics("RecordMatchResultFailed");
+                Debug.LogWarning($"Load-runner match finalization failed: {ex.GetType().Name}");
+            }
         }
 
         private void OnPostTick()

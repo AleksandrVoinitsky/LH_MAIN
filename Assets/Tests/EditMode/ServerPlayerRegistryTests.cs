@@ -120,6 +120,26 @@ public sealed class ServerPlayerRegistryTests
         Assert.That(results, Has.Some.Matches<PlayerResultSnapshot>(result => result.PlayerId == deadPlayerId && result.LifeState == PlayerLifeState.Dead));
         Assert.That(results, Has.Some.Matches<PlayerResultSnapshot>(result => result.PlayerId == removedPlayerId && result.LifeState == PlayerLifeState.Disconnected));
     }
+
+    [Test]
+    public void ApplyTechnicalDamageRecordsAcceptedAndRejectedDamageMetrics()
+    {
+        Guid targetPlayerId = Guid.Parse("77777777-7777-7777-7777-777777777777");
+        var registry = new ServerPlayerRegistry();
+        registry.RegisterAcceptedConnection(7, MatchId, targetPlayerId);
+        GameServerMetrics.Snapshot before = GameServerMetrics.GetSnapshot();
+
+        PlayerStateChange accepted = registry.ApplyTechnicalDamage(
+            new TechnicalDamageEvent(Guid.Parse("88888888-8888-8888-8888-888888888888"), null, targetPlayerId, 25, "technical"));
+        PlayerStateChange rejected = registry.ApplyTechnicalDamage(
+            new TechnicalDamageEvent(Guid.Parse("99999999-9999-9999-9999-999999999999"), null, Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), 25, "technical"));
+        GameServerMetrics.Snapshot after = GameServerMetrics.GetSnapshot();
+
+        Assert.That(accepted.Accepted, Is.True);
+        Assert.That(rejected.Accepted, Is.False);
+        Assert.That(after.AcceptedDamageEvents, Is.EqualTo(before.AcceptedDamageEvents + 1));
+        Assert.That(after.RejectedDamageEvents, Is.EqualTo(before.RejectedDamageEvents + 1));
+    }
 }
 
 public sealed class GameServerAuthenticatorTests
