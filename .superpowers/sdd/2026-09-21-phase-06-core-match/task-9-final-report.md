@@ -29,7 +29,7 @@ final verification:
 - Load report findings: not produced due backend startup blocker.
 
 commit hashes:
-- Pending at report creation.
+- 2c50d2b feat: add phase 06 load scenario
 
 self-review notes/concerns:
 - Load runner implementation is verified by EditMode tests, but the required 64-client runtime load scenario remains unverified because the local Docker backend could not start.

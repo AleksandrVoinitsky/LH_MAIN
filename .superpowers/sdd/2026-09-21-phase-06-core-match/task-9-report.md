@@ -39,7 +39,7 @@ final verification:
 - Load report result: not produced due compose backend startup blocker.
 
 commit hashes:
-- Pending at report creation.
+- 2c50d2b feat: add phase 06 load scenario
 
 self-review notes/concerns:
 - Phase 06 bot flags are set after local server-intent method invocation returns without exception, matching the accepted caveat in the brief where replicated accepted state is not directly exposed to the bot.
