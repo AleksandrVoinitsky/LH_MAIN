@@ -69,4 +69,20 @@ public sealed class PlayerInventoryTests
         Assert.That(inventory.GetSlots()[0].Stack.Quantity, Is.EqualTo(3));
         Assert.That(inventory.GetSlots()[1].IsEmpty, Is.True);
     }
+
+    [Test]
+    public void GetSlotsDoesNotExposeMutableInventoryState()
+    {
+        var inventory = new PlayerInventory(1);
+        var ammo = new ItemDefinition("ammo_9mm", ItemCategory.Ammo, 10, false);
+
+        inventory.TryAdd(ammo, 5, Guid.NewGuid());
+
+        var exposedArray = inventory.GetSlots() as InventorySlot[];
+        if (exposedArray != null)
+            exposedArray[0] = InventorySlot.Empty;
+
+        Assert.That(inventory.GetSlots()[0].Stack.ItemId, Is.EqualTo("ammo_9mm"));
+        Assert.That(inventory.GetSlots()[0].Stack.Quantity, Is.EqualTo(5));
+    }
 }

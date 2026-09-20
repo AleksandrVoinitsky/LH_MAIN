@@ -105,7 +105,7 @@ namespace LH.Main.Unity.Gameplay.Items
 
         public IReadOnlyList<InventorySlot> GetSlots()
         {
-            return _slots;
+            return Array.AsReadOnly((InventorySlot[])_slots.Clone());
         }
 
         public bool ContainsTransaction(Guid transactionId)
