@@ -24,9 +24,9 @@ namespace LH.Main.Unity.Networking
 
             DateTime acceptedAtUtc = DateTime.UtcNow;
             if (!_playersByPlayerId.TryGetValue(playerId, out RegisteredPlayer registeredPlayer))
-                registeredPlayer = new RegisteredPlayer(PlayerStateMachine.Create(playerId), acceptedAtUtc);
+                registeredPlayer = new RegisteredPlayer(matchId, PlayerStateMachine.Create(playerId), acceptedAtUtc);
             else
-                registeredPlayer = registeredPlayer.WithAcceptedAt(acceptedAtUtc);
+                registeredPlayer = registeredPlayer.WithAcceptedAt(matchId, acceptedAtUtc);
 
             _playersByPlayerId[playerId] = registeredPlayer;
             _playersByConnectionId.Add(connectionId, new AcceptedPlayer(connectionId, matchId, playerId, acceptedAtUtc));
@@ -82,6 +82,8 @@ namespace LH.Main.Unity.Networking
         public IReadOnlyList<PlayerResultSnapshot> SnapshotResults(DateTime utcNow)
         {
             var results = new List<PlayerResultSnapshot>(_playersByPlayerId.Count);
+            int extractedPlayers = 0;
+            int deadPlayers = 0;
             foreach (RegisteredPlayer registeredPlayer in _playersByPlayerId.Values)
             {
                 PlayerStateMachine stateMachine = registeredPlayer.StateMachine;
@@ -89,11 +91,29 @@ namespace LH.Main.Unity.Networking
                 if (!lifeState.IsTerminal() && !_connectionIdsByPlayerId.ContainsKey(stateMachine.PlayerId))
                     lifeState = PlayerLifeState.Disconnected;
 
+                if (lifeState == PlayerLifeState.Extracted)
+                    extractedPlayers++;
+                else if (lifeState == PlayerLifeState.Dead)
+                    deadPlayers++;
+
                 int survivalSeconds = Math.Max(0, (int)(utcNow - registeredPlayer.AcceptedAtUtc).TotalSeconds);
                 results.Add(new PlayerResultSnapshot(stateMachine.PlayerId, lifeState, survivalSeconds, 0, stateMachine.DamageTaken));
             }
 
+            GameServerMetrics.SetTerminalPlayerCounts(extractedPlayers, deadPlayers);
             return results;
+        }
+
+        public bool TryGetMatchId(out Guid matchId)
+        {
+            foreach (RegisteredPlayer registeredPlayer in _playersByPlayerId.Values)
+            {
+                matchId = registeredPlayer.MatchId;
+                return true;
+            }
+
+            matchId = Guid.Empty;
+            return false;
         }
 
         public readonly struct AcceptedPlayer
@@ -114,18 +134,20 @@ namespace LH.Main.Unity.Networking
 
         private readonly struct RegisteredPlayer
         {
+            public Guid MatchId { get; }
             public PlayerStateMachine StateMachine { get; }
             public DateTime AcceptedAtUtc { get; }
 
-            public RegisteredPlayer(PlayerStateMachine stateMachine, DateTime acceptedAtUtc)
+            public RegisteredPlayer(Guid matchId, PlayerStateMachine stateMachine, DateTime acceptedAtUtc)
             {
+                MatchId = matchId;
                 StateMachine = stateMachine;
                 AcceptedAtUtc = acceptedAtUtc;
             }
 
-            public RegisteredPlayer WithAcceptedAt(DateTime acceptedAtUtc)
+            public RegisteredPlayer WithAcceptedAt(Guid matchId, DateTime acceptedAtUtc)
             {
-                return new RegisteredPlayer(StateMachine, acceptedAtUtc);
+                return new RegisteredPlayer(matchId, StateMachine, acceptedAtUtc);
             }
         }
     }

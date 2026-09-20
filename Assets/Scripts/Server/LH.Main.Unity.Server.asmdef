@@ -2,6 +2,7 @@
     "name": "LH.Main.Unity.Server",
     "rootNamespace": "",
     "references": [
+        "LH.Main.Unity.Gameplay",
         "FishNet.Runtime"
     ],
     "includePlatforms": [],

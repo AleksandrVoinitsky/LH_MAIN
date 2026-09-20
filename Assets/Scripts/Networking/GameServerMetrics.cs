@@ -20,6 +20,13 @@ namespace LH.Main.Unity.Networking
         private static long _rejectedAdmissions;
         private static long _invalidInputCommands;
         private static long _disconnects;
+        private static long _acceptedDamageEvents;
+        private static long _rejectedDamageEvents;
+        private static long _extractedPlayers;
+        private static long _deadPlayers;
+        private static long _submittedMatchResults;
+        private static long _duplicateMatchResults;
+        private static long _failedMatchResults;
 
         public static void RecordAdmissionAccepted()
         {
@@ -39,6 +46,44 @@ namespace LH.Main.Unity.Networking
         public static void RecordDisconnect()
         {
             Interlocked.Increment(ref _disconnects);
+        }
+
+        public static void RecordDamageAccepted()
+        {
+            Interlocked.Increment(ref _acceptedDamageEvents);
+        }
+
+        public static void RecordDamageRejected(string reason)
+        {
+            Interlocked.Increment(ref _rejectedDamageEvents);
+        }
+
+        public static void SetTerminalPlayerCounts(int extractedPlayers, int deadPlayers)
+        {
+            Interlocked.Exchange(ref _extractedPlayers, Math.Max(0, extractedPlayers));
+            Interlocked.Exchange(ref _deadPlayers, Math.Max(0, deadPlayers));
+        }
+
+        public static void RecordPlayerExtracted()
+        {
+            Interlocked.Increment(ref _extractedPlayers);
+        }
+
+        public static void RecordPlayerDead()
+        {
+            Interlocked.Increment(ref _deadPlayers);
+        }
+
+        public static void RecordMatchResultSubmitted(bool duplicate)
+        {
+            Interlocked.Increment(ref _submittedMatchResults);
+            if (duplicate)
+                Interlocked.Increment(ref _duplicateMatchResults);
+        }
+
+        public static void RecordMatchResultFailed()
+        {
+            Interlocked.Increment(ref _failedMatchResults);
         }
 
         public static void SetConnectionCounts(int activeConnections, int spawnedPlayers)
@@ -106,7 +151,14 @@ namespace LH.Main.Unity.Networking
                 GetTickP95Ms(),
                 GC.GetTotalMemory(false) / (1024 * 1024),
                 inboundKbps,
-                outboundKbps);
+                outboundKbps,
+                Interlocked.Read(ref _acceptedDamageEvents),
+                Interlocked.Read(ref _rejectedDamageEvents),
+                Interlocked.Read(ref _extractedPlayers),
+                Interlocked.Read(ref _deadPlayers),
+                Interlocked.Read(ref _submittedMatchResults),
+                Interlocked.Read(ref _duplicateMatchResults),
+                Interlocked.Read(ref _failedMatchResults));
         }
 
         private static double SanitizeMetricDouble(double value)
@@ -142,6 +194,13 @@ namespace LH.Main.Unity.Networking
             public long ProcessMemoryMb { get; }
             public double InboundKbps { get; }
             public double OutboundKbps { get; }
+            public long AcceptedDamageEvents { get; }
+            public long RejectedDamageEvents { get; }
+            public long ExtractedPlayers { get; }
+            public long DeadPlayers { get; }
+            public long SubmittedMatchResults { get; }
+            public long DuplicateMatchResults { get; }
+            public long FailedMatchResults { get; }
 
             public Snapshot(
                 int activeConnections,
@@ -154,7 +213,14 @@ namespace LH.Main.Unity.Networking
                 double serverTickP95Ms,
                 long processMemoryMb,
                 double inboundKbps,
-                double outboundKbps)
+                double outboundKbps,
+                long acceptedDamageEvents,
+                long rejectedDamageEvents,
+                long extractedPlayers,
+                long deadPlayers,
+                long submittedMatchResults,
+                long duplicateMatchResults,
+                long failedMatchResults)
             {
                 ActiveConnections = activeConnections;
                 SpawnedPlayers = spawnedPlayers;
@@ -167,6 +233,13 @@ namespace LH.Main.Unity.Networking
                 ProcessMemoryMb = processMemoryMb;
                 InboundKbps = inboundKbps;
                 OutboundKbps = outboundKbps;
+                AcceptedDamageEvents = acceptedDamageEvents;
+                RejectedDamageEvents = rejectedDamageEvents;
+                ExtractedPlayers = extractedPlayers;
+                DeadPlayers = deadPlayers;
+                SubmittedMatchResults = submittedMatchResults;
+                DuplicateMatchResults = duplicateMatchResults;
+                FailedMatchResults = failedMatchResults;
             }
         }
     }

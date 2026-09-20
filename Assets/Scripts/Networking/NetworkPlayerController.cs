@@ -31,6 +31,11 @@ namespace LH.Main.Unity.Networking
         [Server]
         public void ApplyServerLifeState(PlayerLifeState lifeState)
         {
+            if (LifeState != PlayerLifeState.Extracted && lifeState == PlayerLifeState.Extracted)
+                GameServerMetrics.RecordPlayerExtracted();
+            else if (LifeState != PlayerLifeState.Dead && lifeState == PlayerLifeState.Dead)
+                GameServerMetrics.RecordPlayerDead();
+
             LifeState = lifeState;
         }
 

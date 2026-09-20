@@ -4,6 +4,7 @@ using FishNet.Authenticating;
 using FishNet.Managing;
 using FishNet.Transporting;
 using FishNet.Transporting.Tugboat;
+using LH.Main.Unity.Gameplay;
 using UnityEngine;
 using Stopwatch = System.Diagnostics.Stopwatch;
 
@@ -19,6 +20,7 @@ namespace LH.Main.Unity.Server
         private object? _ticketValidator;
         private object? _admissionAuthenticator;
         private object? _playerRegistry;
+        private MatchResultSubmitter? _matchResultSubmitter;
         private Type? _metricsType;
         private GameServerState _state = GameServerState.Failed;
         private DateTime _startedAtUtc;
@@ -49,6 +51,12 @@ namespace LH.Main.Unity.Server
                 _ticketValidator = Activator.CreateInstance(ticketValidatorType, _config);
                 _admissionAuthenticator = Activator.CreateInstance(admissionAuthenticatorType, _config.ServerId, _ticketValidator);
                 _playerRegistry = Activator.CreateInstance(playerRegistryType);
+                _matchResultSubmitter = new MatchResultSubmitter(
+                    _config.BackendBaseUrl,
+                    _config.SharedKey,
+                    TimeSpan.FromSeconds(_config.TicketValidationTimeoutSeconds),
+                    new HttpClientMatchResultSender(),
+                    Debug.LogWarning);
             }
             catch (Exception ex)
             {
@@ -203,7 +211,45 @@ namespace LH.Main.Unity.Server
                 ReadDoubleMetric(metricsSnapshot, "ServerTickP95Ms"),
                 ReadLongMetric(metricsSnapshot, "ProcessMemoryMb"),
                 ReadDoubleMetric(metricsSnapshot, "InboundKbps"),
-                ReadDoubleMetric(metricsSnapshot, "OutboundKbps"));
+                ReadDoubleMetric(metricsSnapshot, "OutboundKbps"),
+                ReadLongMetric(metricsSnapshot, "AcceptedDamageEvents"),
+                ReadLongMetric(metricsSnapshot, "RejectedDamageEvents"),
+                ReadLongMetric(metricsSnapshot, "ExtractedPlayers"),
+                ReadLongMetric(metricsSnapshot, "DeadPlayers"),
+                ReadLongMetric(metricsSnapshot, "SubmittedMatchResults"),
+                ReadLongMetric(metricsSnapshot, "DuplicateMatchResults"),
+                ReadLongMetric(metricsSnapshot, "FailedMatchResults"));
+        }
+
+        public void FinalizeMatchForLoadRunner()
+        {
+            _ = FinalizeMatchForLoadRunnerAsync();
+        }
+
+        private async System.Threading.Tasks.Task FinalizeMatchForLoadRunnerAsync()
+        {
+            GameServerConfig config = _config;
+            MatchResultSubmitter submitter = _matchResultSubmitter;
+            if (config == null || submitter == null || _playerRegistry == null)
+                return;
+
+            MethodInfo matchIdMethod = _playerRegistry.GetType().GetMethod("TryGetMatchId", BindingFlags.Public | BindingFlags.Instance);
+            object[] matchIdArguments = { Guid.Empty };
+            if (matchIdMethod == null || !(bool)matchIdMethod.Invoke(_playerRegistry, matchIdArguments))
+                return;
+
+            var matchId = (Guid)matchIdArguments[0];
+            MethodInfo snapshotMethod = _playerRegistry.GetType().GetMethod("SnapshotResults", BindingFlags.Public | BindingFlags.Instance);
+            var players = snapshotMethod?.Invoke(_playerRegistry, new object[] { DateTime.UtcNow }) as System.Collections.Generic.IReadOnlyList<PlayerResultSnapshot>;
+            if (players == null)
+                return;
+
+            MatchResultPayload payload = MatchResultBuilder.Build(matchId, config.ServerId, players, DateTime.UtcNow);
+            MatchResultSubmissionOutcome outcome = await submitter.SubmitAsync(payload, System.Threading.CancellationToken.None);
+            if (outcome.Accepted)
+                InvokeMetrics("RecordMatchResultSubmitted", outcome.Duplicate);
+            else
+                InvokeMetrics("RecordMatchResultFailed");
         }
 
         private void OnPostTick()

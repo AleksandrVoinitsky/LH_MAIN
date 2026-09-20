@@ -96,6 +96,30 @@ public sealed class ServerPlayerRegistryTests
         Assert.That(results[0].PlayerId, Is.EqualTo(PlayerId));
         Assert.That(results[0].LifeState, Is.EqualTo(PlayerLifeState.Disconnected));
     }
+
+    [Test]
+    public void SnapshotResultsReturnsTerminalOutcomesForExtractedDeadAndRemovedPlayers()
+    {
+        Guid extractedPlayerId = Guid.Parse("33333333-3333-3333-3333-333333333333");
+        Guid deadPlayerId = Guid.Parse("44444444-4444-4444-4444-444444444444");
+        Guid removedPlayerId = Guid.Parse("55555555-5555-5555-5555-555555555555");
+        var registry = new ServerPlayerRegistry();
+        registry.RegisterAcceptedConnection(7, MatchId, extractedPlayerId);
+        registry.RegisterAcceptedConnection(8, MatchId, deadPlayerId);
+        registry.RegisterAcceptedConnection(9, MatchId, removedPlayerId);
+        registry.TryGetPlayerState(extractedPlayerId, out PlayerStateMachine extractedState);
+        registry.TryGetPlayerState(deadPlayerId, out PlayerStateMachine deadState);
+        extractedState.TryExtract();
+        deadState.ApplyDamage(new TechnicalDamageEvent(Guid.Parse("66666666-6666-6666-6666-666666666666"), null, deadPlayerId, 130, "test"));
+        registry.RemoveConnection(9);
+
+        var results = registry.SnapshotResults(DateTime.UtcNow);
+
+        Assert.That(results, Has.Count.EqualTo(3));
+        Assert.That(results, Has.Some.Matches<PlayerResultSnapshot>(result => result.PlayerId == extractedPlayerId && result.LifeState == PlayerLifeState.Extracted));
+        Assert.That(results, Has.Some.Matches<PlayerResultSnapshot>(result => result.PlayerId == deadPlayerId && result.LifeState == PlayerLifeState.Dead));
+        Assert.That(results, Has.Some.Matches<PlayerResultSnapshot>(result => result.PlayerId == removedPlayerId && result.LifeState == PlayerLifeState.Disconnected));
+    }
 }
 
 public sealed class GameServerAuthenticatorTests

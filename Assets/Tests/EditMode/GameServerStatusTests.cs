@@ -49,6 +49,27 @@ public sealed class GameServerStatusTests
     }
 
     [Test]
+    public void ToJsonIncludesGameplayLoopMetrics()
+    {
+        var status = new GameServerStatus("game-server-1", "idle", 7771, "localhost", 7771, DateTime.UtcNow)
+        {
+            AcceptedDamageEvents = 2,
+            RejectedDamageEvents = 1,
+            ExtractedPlayers = 3,
+            DeadPlayers = 4,
+            SubmittedMatchResults = 1,
+            DuplicateMatchResults = 1,
+            FailedMatchResults = 0
+        };
+
+        string json = status.ToJson();
+
+        Assert.That(json, Does.Contain("\"acceptedDamageEvents\":2"));
+        Assert.That(json, Does.Contain("\"extractedPlayers\":3"));
+        Assert.That(json, Does.Contain("\"duplicateMatchResults\":1"));
+    }
+
+    [Test]
     public void RegistryAcceptedConnectionsDoNotCountAsSpawnedPlayers()
     {
         GameServerMetrics.SetConnectionCounts(0, 0);
