@@ -24,3 +24,13 @@
 
 - Healing rejection restores the consumed item using a new internal transaction id so failed med use has no player-visible item loss.
 - Med cooldown is checked before inventory mutation and applies only after successful healing.
+
+## Review Fix: Med Item Validation
+
+- Added a validated `TryUseMedItem` overload that accepts a server-owned `ItemDefinition`.
+- The validated path rejects definitions that are not `ItemCategory.MedItem` or are not usable with `med_item_invalid` before cooldown checks or inventory mutation.
+- Preserved the original brief signature but made it reject with `med_item_definition_required` before mutation because item id alone cannot prove category or usability.
+- Added focused tests for non-med and unusable med definitions preserving inventory and damage state.
+- RED: new tests/overload first caused Unity compiler errors because the overload did not exist.
+- GREEN: fresh no-`-quit` Task 6 EditMode XML shows `testcasecount="118" result="Passed" total="118" passed="118" failed="0"`; `EffectRuntimeTests` shows `total="6" passed="6" failed="0"`.
+- `git diff --check`: no whitespace errors; warnings only for line-ending normalization on touched C# files and unrelated asset/settings files.

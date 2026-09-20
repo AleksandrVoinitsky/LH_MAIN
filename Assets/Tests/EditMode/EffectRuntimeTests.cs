@@ -20,7 +20,7 @@ public sealed class EffectRuntimeTests
             playerId,
             inventory,
             state,
-            "med_small",
+            MedDefinition(),
             25,
             10d,
             Guid.Parse("22222222-2222-2222-2222-222222222222"));
@@ -39,8 +39,8 @@ public sealed class EffectRuntimeTests
         state.ApplyDamage(new TechnicalDamageEvent(Guid.NewGuid(), null, playerId, 80, "technical"));
         var runtime = new EffectRuntime();
 
-        runtime.TryUseMedItem(playerId, inventory, state, "med_small", 20, 20d, Guid.NewGuid());
-        InventoryTransactionResult result = runtime.TryUseMedItem(playerId, inventory, state, "med_small", 20, 20.5d, Guid.NewGuid());
+        runtime.TryUseMedItem(playerId, inventory, state, MedDefinition(), 20, 20d, Guid.NewGuid());
+        InventoryTransactionResult result = runtime.TryUseMedItem(playerId, inventory, state, MedDefinition(), 20, 20.5d, Guid.NewGuid());
 
         Assert.That(result.Accepted, Is.False);
         Assert.That(result.Reason, Is.EqualTo("med_cooldown"));
@@ -56,10 +56,45 @@ public sealed class EffectRuntimeTests
         var state = PlayerStateMachine.Create(playerId);
         var runtime = new EffectRuntime();
 
-        InventoryTransactionResult result = runtime.TryUseMedItem(playerId, inventory, state, "med_small", 20, 30d, Guid.NewGuid());
+        InventoryTransactionResult result = runtime.TryUseMedItem(playerId, inventory, state, MedDefinition(), 20, 30d, Guid.NewGuid());
 
         Assert.That(result.Accepted, Is.False);
         Assert.That(result.Reason, Is.EqualTo("healing_not_needed"));
+        Assert.That(GetQuantity(inventory, "med_small"), Is.EqualTo(1));
+    }
+
+    [Test]
+    public void TryUseMedItemRejectsNonMedDefinitionBeforeConsumingInventory()
+    {
+        var playerId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var inventory = CreateInventoryWithItem(new ItemDefinition("ammo_9mm", ItemCategory.Ammo, 30, false), 1);
+        var state = PlayerStateMachine.Create(playerId);
+        state.ApplyDamage(new TechnicalDamageEvent(Guid.NewGuid(), null, playerId, 40, "technical"));
+        var runtime = new EffectRuntime();
+
+        InventoryTransactionResult result = runtime.TryUseMedItem(playerId, inventory, state, new ItemDefinition("ammo_9mm", ItemCategory.Ammo, 30, false), 20, 40d, Guid.NewGuid());
+
+        Assert.That(result.Accepted, Is.False);
+        Assert.That(result.Reason, Is.EqualTo("med_item_invalid"));
+        Assert.That(state.DamageTaken, Is.EqualTo(40));
+        Assert.That(GetQuantity(inventory, "ammo_9mm"), Is.EqualTo(1));
+    }
+
+    [Test]
+    public void TryUseMedItemRejectsUnusableMedDefinitionBeforeConsumingInventory()
+    {
+        var playerId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var unusableMed = new ItemDefinition("med_small", ItemCategory.MedItem, 5, false);
+        var inventory = CreateInventoryWithItem(unusableMed, 1);
+        var state = PlayerStateMachine.Create(playerId);
+        state.ApplyDamage(new TechnicalDamageEvent(Guid.NewGuid(), null, playerId, 40, "technical"));
+        var runtime = new EffectRuntime();
+
+        InventoryTransactionResult result = runtime.TryUseMedItem(playerId, inventory, state, unusableMed, 20, 50d, Guid.NewGuid());
+
+        Assert.That(result.Accepted, Is.False);
+        Assert.That(result.Reason, Is.EqualTo("med_item_invalid"));
+        Assert.That(state.DamageTaken, Is.EqualTo(40));
         Assert.That(GetQuantity(inventory, "med_small"), Is.EqualTo(1));
     }
 
@@ -97,9 +132,19 @@ public sealed class EffectRuntimeTests
 
     private static PlayerInventory CreateInventoryWithMeds(int quantity)
     {
+        return CreateInventoryWithItem(MedDefinition(), quantity);
+    }
+
+    private static PlayerInventory CreateInventoryWithItem(ItemDefinition definition, int quantity)
+    {
         var inventory = new PlayerInventory(2);
-        inventory.TryAdd(new ItemDefinition("med_small", ItemCategory.MedItem, 5, true), quantity, Guid.NewGuid());
+        inventory.TryAdd(definition, quantity, Guid.NewGuid());
         return inventory;
+    }
+
+    private static ItemDefinition MedDefinition()
+    {
+        return new ItemDefinition("med_small", ItemCategory.MedItem, 5, true);
     }
 
     private static int GetQuantity(PlayerInventory inventory, string itemId)

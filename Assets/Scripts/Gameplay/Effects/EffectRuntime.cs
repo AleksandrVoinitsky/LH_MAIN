@@ -19,23 +19,38 @@ namespace LH.Main.Unity.Gameplay.Effects
             double serverTimeSeconds,
             Guid transactionId)
         {
+            return InventoryTransactionResult.Rejected("med_item_definition_required");
+        }
+
+        public InventoryTransactionResult TryUseMedItem(
+            Guid playerId,
+            PlayerInventory inventory,
+            PlayerStateMachine state,
+            ItemDefinition itemDefinition,
+            int healAmount,
+            double serverTimeSeconds,
+            Guid transactionId)
+        {
             if (inventory == null)
                 throw new ArgumentNullException(nameof(inventory));
 
             if (state == null)
                 throw new ArgumentNullException(nameof(state));
 
+            if (itemDefinition.Category != ItemCategory.MedItem || !itemDefinition.Usable)
+                return InventoryTransactionResult.Rejected("med_item_invalid");
+
             if (_nextMedUseAtSeconds.TryGetValue(playerId, out double nextUseAtSeconds) && serverTimeSeconds < nextUseAtSeconds)
                 return InventoryTransactionResult.Rejected("med_cooldown");
 
-            InventoryTransactionResult remove = inventory.TryRemove(itemId, 1, transactionId);
+            InventoryTransactionResult remove = inventory.TryRemove(itemDefinition.ItemId, 1, transactionId);
             if (!remove.Accepted)
                 return remove;
 
-            PlayerStateChange healing = state.ApplyHealing(new HealingEvent(transactionId, playerId, healAmount, itemId));
+            PlayerStateChange healing = state.ApplyHealing(new HealingEvent(transactionId, playerId, healAmount, itemDefinition.ItemId));
             if (!healing.Accepted)
             {
-                inventory.TryAdd(new ItemDefinition(itemId, ItemCategory.MedItem, GetRestoreMaxStack(inventory, itemId), true), 1, Guid.NewGuid());
+                inventory.TryAdd(itemDefinition, 1, Guid.NewGuid());
                 return InventoryTransactionResult.Rejected(healing.Reason);
             }
 
@@ -80,18 +95,6 @@ namespace LH.Main.Unity.Gameplay.Effects
             }
 
             return applied;
-        }
-
-        private static int GetRestoreMaxStack(PlayerInventory inventory, string itemId)
-        {
-            int currentQuantity = 0;
-            foreach (InventorySlot slot in inventory.GetSlots())
-            {
-                if (!slot.IsEmpty && slot.Stack.ItemId == itemId)
-                    currentQuantity += slot.Stack.Quantity;
-            }
-
-            return Math.Max(1, currentQuantity + 1);
         }
     }
 }
