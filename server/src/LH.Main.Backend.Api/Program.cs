@@ -3,6 +3,7 @@ using System.Text;
 using LH.Main.Contracts;
 using LH.Main.Backend.Api.Identity;
 using LH.Main.Backend.Api.Matchmaking;
+using LH.Main.Backend.Api.MatchResults;
 using LH.Main.Backend.Api.Persistence;
 using LH.Main.Backend.Api.Persistence.Entities;
 using Microsoft.AspNetCore.Authentication;
@@ -44,6 +45,7 @@ if (!string.IsNullOrWhiteSpace(connectionString))
     builder.Services.AddScoped<IdentityService>();
     builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
     builder.Services.AddScoped<MatchmakingService>();
+    builder.Services.AddScoped<MatchResultService>();
 }
 
 builder.Services.Configure<GameServerOptions>(builder.Configuration.GetSection("GameServers"));
@@ -261,6 +263,26 @@ if (!string.IsNullOrWhiteSpace(connectionString))
         var serverKey = context.Request.Headers["X-Game-Server-Key"].ToString();
         var result = await service.ValidateTicketAsync(request, serverKey, cancellationToken);
         return result.Unauthorized ? Results.Unauthorized() : Results.Ok(result.Response);
+    });
+
+    app.MapPost("/internal/v1/matches/results", async (
+        MatchResultSubmissionRequest request,
+        HttpContext context,
+        MatchResultService service,
+        CancellationToken cancellationToken) =>
+    {
+        var serverKey = context.Request.Headers["X-Game-Server-Key"].ToString();
+        var result = await service.SubmitAsync(request, serverKey, cancellationToken);
+        if (result.Unauthorized)
+            return Results.Unauthorized();
+        if (!string.IsNullOrWhiteSpace(result.ConflictCode))
+        {
+            return Results.Problem(
+                statusCode: StatusCodes.Status409Conflict,
+                extensions: new Dictionary<string, object?> { ["code"] = result.ConflictCode });
+        }
+
+        return Results.Ok(result.Response);
     });
 }
 
