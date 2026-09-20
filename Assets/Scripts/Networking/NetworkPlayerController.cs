@@ -11,7 +11,7 @@ namespace LH.Main.Unity.Networking
         private double _lastAcceptedMovementCommandServerTime;
 
         public MovementState AuthoritativeState => _movementState;
-        public PlayerLifeState LifeState { get; set; } = PlayerLifeState.Alive;
+        public PlayerLifeState LifeState { get; private set; } = PlayerLifeState.Alive;
 
         public override void OnStartServer()
         {
@@ -26,6 +26,12 @@ namespace LH.Main.Unity.Networking
         public void ServerApplyInput(MovementCommand command)
         {
             ApplyAuthoritativeInput(command);
+        }
+
+        [Server]
+        public void ApplyServerLifeState(PlayerLifeState lifeState)
+        {
+            LifeState = lifeState;
         }
 
         public void ApplyAuthoritativeInput(MovementCommand command)
