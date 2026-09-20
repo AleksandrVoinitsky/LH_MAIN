@@ -34,3 +34,14 @@
 - RED: new tests/overload first caused Unity compiler errors because the overload did not exist.
 - GREEN: fresh no-`-quit` Task 6 EditMode XML shows `testcasecount="118" result="Passed" total="118" passed="118" failed="0"`; `EffectRuntimeTests` shows `total="6" passed="6" failed="0"`.
 - `git diff --check`: no whitespace errors; warnings only for line-ending normalization on touched C# files and unrelated asset/settings files.
+
+## Scoped Re-Review Fix: Required String API Validation
+
+- Restored the brief-required string `TryUseMedItem` API by adding a server-owned item definition registry on `EffectRuntime`.
+- Added `RegisterItemDefinition(ItemDefinition)` so callers can register authoritative server definitions before accepting client item-use intent.
+- The string overload now rejects unknown item ids with `med_item_unknown`, and registered non-med/unusable items with `med_item_invalid`, before inventory mutation.
+- The string overload delegates successful known med use to the validated `ItemDefinition` path, preserving server-side category and usable validation.
+- Added focused tests for successful string API med use and invalid/unknown string API rejection without inventory or health mutation.
+- RED: new tests first failed at compile time because `RegisterItemDefinition` did not exist.
+- GREEN: fresh no-`-quit` Task 6 EditMode XML shows `testcasecount="120" result="Passed" total="120" passed="120" failed="0"`; `EffectRuntimeTests` shows `total="8" passed="8" failed="0"`.
+- `git diff --check`: no whitespace errors; warnings only for line-ending normalization on touched C# files and unrelated asset/settings files.

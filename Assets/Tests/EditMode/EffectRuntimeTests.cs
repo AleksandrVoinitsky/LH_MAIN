@@ -31,6 +31,23 @@ public sealed class EffectRuntimeTests
     }
 
     [Test]
+    public void TryUseMedItemStringApiUsesServerKnownMedDefinition()
+    {
+        var playerId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var inventory = CreateInventoryWithMeds(2);
+        var state = PlayerStateMachine.Create(playerId);
+        state.ApplyDamage(new TechnicalDamageEvent(Guid.NewGuid(), null, playerId, 40, "technical"));
+        var runtime = new EffectRuntime();
+        runtime.RegisterItemDefinition(MedDefinition());
+
+        InventoryTransactionResult result = runtime.TryUseMedItem(playerId, inventory, state, "med_small", 25, 11d, Guid.NewGuid());
+
+        Assert.That(result.Accepted, Is.True);
+        Assert.That(state.DamageTaken, Is.EqualTo(15));
+        Assert.That(GetQuantity(inventory, "med_small"), Is.EqualTo(1));
+    }
+
+    [Test]
     public void TryUseMedItemRejectsCooldownBeforeConsumingInventory()
     {
         var playerId = Guid.Parse("11111111-1111-1111-1111-111111111111");
@@ -96,6 +113,36 @@ public sealed class EffectRuntimeTests
         Assert.That(result.Reason, Is.EqualTo("med_item_invalid"));
         Assert.That(state.DamageTaken, Is.EqualTo(40));
         Assert.That(GetQuantity(inventory, "med_small"), Is.EqualTo(1));
+    }
+
+    [Test]
+    public void TryUseMedItemStringApiRejectsInvalidOrUnknownItemsBeforeConsumingInventory()
+    {
+        var playerId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var ammo = new ItemDefinition("ammo_9mm", ItemCategory.Ammo, 30, false);
+        var unusableMed = new ItemDefinition("med_broken", ItemCategory.MedItem, 5, false);
+        var inventory = new PlayerInventory(3);
+        inventory.TryAdd(ammo, 1, Guid.NewGuid());
+        inventory.TryAdd(unusableMed, 1, Guid.NewGuid());
+        var state = PlayerStateMachine.Create(playerId);
+        state.ApplyDamage(new TechnicalDamageEvent(Guid.NewGuid(), null, playerId, 40, "technical"));
+        var runtime = new EffectRuntime();
+        runtime.RegisterItemDefinition(ammo);
+        runtime.RegisterItemDefinition(unusableMed);
+
+        InventoryTransactionResult nonMed = runtime.TryUseMedItem(playerId, inventory, state, "ammo_9mm", 20, 60d, Guid.NewGuid());
+        InventoryTransactionResult unusable = runtime.TryUseMedItem(playerId, inventory, state, "med_broken", 20, 61d, Guid.NewGuid());
+        InventoryTransactionResult unknown = runtime.TryUseMedItem(playerId, inventory, state, "med_unknown", 20, 62d, Guid.NewGuid());
+
+        Assert.That(nonMed.Accepted, Is.False);
+        Assert.That(nonMed.Reason, Is.EqualTo("med_item_invalid"));
+        Assert.That(unusable.Accepted, Is.False);
+        Assert.That(unusable.Reason, Is.EqualTo("med_item_invalid"));
+        Assert.That(unknown.Accepted, Is.False);
+        Assert.That(unknown.Reason, Is.EqualTo("med_item_unknown"));
+        Assert.That(state.DamageTaken, Is.EqualTo(40));
+        Assert.That(GetQuantity(inventory, "ammo_9mm"), Is.EqualTo(1));
+        Assert.That(GetQuantity(inventory, "med_broken"), Is.EqualTo(1));
     }
 
     [Test]

@@ -7,8 +7,17 @@ namespace LH.Main.Unity.Gameplay.Effects
     public sealed class EffectRuntime
     {
         private const double MedCooldownSeconds = 1d;
+        private readonly Dictionary<string, ItemDefinition> _itemDefinitions = new Dictionary<string, ItemDefinition>();
         private readonly Dictionary<Guid, double> _nextMedUseAtSeconds = new Dictionary<Guid, double>();
         private readonly List<TimedEffect> _effects = new List<TimedEffect>();
+
+        public void RegisterItemDefinition(ItemDefinition itemDefinition)
+        {
+            if (string.IsNullOrEmpty(itemDefinition.ItemId))
+                return;
+
+            _itemDefinitions[itemDefinition.ItemId] = itemDefinition;
+        }
 
         public InventoryTransactionResult TryUseMedItem(
             Guid playerId,
@@ -19,7 +28,10 @@ namespace LH.Main.Unity.Gameplay.Effects
             double serverTimeSeconds,
             Guid transactionId)
         {
-            return InventoryTransactionResult.Rejected("med_item_definition_required");
+            if (!_itemDefinitions.TryGetValue(itemId, out ItemDefinition itemDefinition))
+                return InventoryTransactionResult.Rejected("med_item_unknown");
+
+            return TryUseMedItem(playerId, inventory, state, itemDefinition, healAmount, serverTimeSeconds, transactionId);
         }
 
         public InventoryTransactionResult TryUseMedItem(
