@@ -9,6 +9,7 @@ namespace LH.Main.Unity.Gameplay
         public const int MaxWoundedPoints = 30;
 
         private readonly HashSet<Guid> _appliedDamageCorrelations = new HashSet<Guid>();
+        private readonly HashSet<Guid> _appliedHealingCorrelations = new HashSet<Guid>();
 
         private PlayerStateMachine(Guid playerId)
         {
@@ -52,6 +53,52 @@ namespace LH.Main.Unity.Gameplay
             return PlayerStateChange.Accept(oldState, LifeState);
         }
 
+        public PlayerStateChange ApplyDamage(DamageEvent damage, BodyZoneDamageTable table)
+        {
+            PlayerLifeState oldState = LifeState;
+            if (LifeState.IsTerminal())
+                return PlayerStateChange.Reject("state_terminal", oldState);
+
+            if (damage.TargetPlayerId != PlayerId)
+                return PlayerStateChange.Reject("damage_target_mismatch", oldState);
+
+            if (damage.BaseAmount <= 0)
+                return PlayerStateChange.Reject("damage_invalid", oldState);
+
+            if (!_appliedDamageCorrelations.Add(damage.CorrelationId))
+                return PlayerStateChange.Reject("damage_duplicate", oldState);
+
+            DamageTaken += table.CalculateDamage(damage.BaseAmount, damage.BodyZone);
+            UpdateLifeStateFromDamage();
+
+            return PlayerStateChange.Accept(oldState, LifeState);
+        }
+
+        public PlayerStateChange ApplyHealing(HealingEvent healing)
+        {
+            PlayerLifeState oldState = LifeState;
+            if (LifeState.IsTerminal())
+                return PlayerStateChange.Reject("state_terminal", oldState);
+
+            if (healing.TargetPlayerId != PlayerId)
+                return PlayerStateChange.Reject("healing_target_mismatch", oldState);
+
+            if (healing.Amount <= 0)
+                return PlayerStateChange.Reject("healing_invalid", oldState);
+
+            if (_appliedHealingCorrelations.Contains(healing.CorrelationId))
+                return PlayerStateChange.Reject("healing_duplicate", oldState);
+
+            if (DamageTaken <= 0)
+                return PlayerStateChange.Reject("healing_not_needed", oldState);
+
+            _appliedHealingCorrelations.Add(healing.CorrelationId);
+            DamageTaken = Math.Max(0, DamageTaken - healing.Amount);
+            UpdateLifeStateFromDamage();
+
+            return PlayerStateChange.Accept(oldState, LifeState);
+        }
+
         public PlayerStateChange TryExtract()
         {
             PlayerLifeState oldState = LifeState;
@@ -60,6 +107,15 @@ namespace LH.Main.Unity.Gameplay
 
             LifeState = PlayerLifeState.Extracted;
             return PlayerStateChange.Accept(oldState, LifeState);
+        }
+
+        private void UpdateLifeStateFromDamage()
+        {
+            LifeState = DamageTaken >= MaxHealth + MaxWoundedPoints
+                ? PlayerLifeState.Dead
+                : DamageTaken >= MaxHealth
+                    ? PlayerLifeState.Wounded
+                    : PlayerLifeState.Alive;
         }
     }
 
