@@ -107,38 +107,7 @@ namespace LH.Main.Unity.Editor
                 await TryCollectStatusAsync(options.BackendUrl, report, cancellationSource.Token);
 
                 foreach (BotResult result in results)
-                {
-                    if (result.Connected)
-                        report.ConnectedClients++;
-                    if (result.Spawned)
-                        report.SpawnedClients++;
-                    if (result.Extracted)
-                        report.ExtractedClients++;
-                    if (result.Dead)
-                        report.DeadClients++;
-                    if (result.DisconnectedOutcome)
-                        report.DisconnectedOutcomeClients++;
-                    if (result.PickedUpLoot)
-                        report.LootPickups++;
-                    if (result.FiredWeapon)
-                        report.FireRequests++;
-                    if (result.ReloadedWeapon)
-                        report.ReloadRequests++;
-                    if (result.ThrewGrenade)
-                        report.GrenadesThrown++;
-                    if (result.UsedMedItem)
-                        report.MedItemsUsed++;
-                    if (result.TookZoneDamage)
-                        report.ZoneDamageTicks++;
-
-                    if (IsCompletedResult(result, options.Phase05GameplayLoop, options.Phase06CoreMatch))
-                        report.CompletedClients++;
-                    else
-                    {
-                        report.FailedClients++;
-                        report.DisconnectReasons.Add(string.IsNullOrWhiteSpace(result.FailureReason) ? "bot_failed" : result.FailureReason);
-                    }
-                }
+                    ApplyBotResultToReport(report, result, options.Phase05GameplayLoop, options.Phase06CoreMatch);
 
                 if (options.Phase05GameplayLoop)
                 {
@@ -283,12 +252,7 @@ namespace LH.Main.Unity.Editor
                 return result.Connected
                     && result.Spawned
                     && result.Moved
-                    && result.DisconnectedCleanly
-                    && result.PickedUpLoot
-                    && result.FiredWeapon
-                    && result.ReloadedWeapon
-                    && result.ThrewGrenade
-                    && result.UsedMedItem;
+                    && result.DisconnectedCleanly;
             }
 
             return result.Connected
@@ -321,6 +285,44 @@ namespace LH.Main.Unity.Editor
         private static bool ShouldExitSuccessfully(LoadScenarioReport report, int targetClients, bool phase05GameplayLoop)
         {
             return ShouldExitSuccessfully(report, targetClients, phase05GameplayLoop, false);
+        }
+
+        private static void ApplyBotResultToReport(LoadScenarioReport report, BotResult result, bool phase05GameplayLoop, bool phase06CoreMatch)
+        {
+            if (result.Connected)
+                report.ConnectedClients++;
+            if (result.Spawned)
+                report.SpawnedClients++;
+            if (result.Extracted)
+                report.ExtractedClients++;
+            if (result.Dead)
+                report.DeadClients++;
+            if (result.DisconnectedOutcome)
+                report.DisconnectedOutcomeClients++;
+
+            if (!phase06CoreMatch)
+            {
+                if (result.PickedUpLoot)
+                    report.LootPickups++;
+                if (result.FiredWeapon)
+                    report.FireRequests++;
+                if (result.ReloadedWeapon)
+                    report.ReloadRequests++;
+                if (result.ThrewGrenade)
+                    report.GrenadesThrown++;
+                if (result.UsedMedItem)
+                    report.MedItemsUsed++;
+                if (result.TookZoneDamage)
+                    report.ZoneDamageTicks++;
+            }
+
+            if (IsCompletedResult(result, phase05GameplayLoop, phase06CoreMatch))
+                report.CompletedClients++;
+            else
+            {
+                report.FailedClients++;
+                report.DisconnectReasons.Add(string.IsNullOrWhiteSpace(result.FailureReason) ? "bot_failed" : result.FailureReason);
+            }
         }
 
         private static bool ShouldExitSuccessfully(LoadScenarioReport report, int targetClients, bool phase05GameplayLoop, bool phase06CoreMatch)
@@ -444,19 +446,28 @@ namespace LH.Main.Unity.Editor
                     using HttpResponseMessage response = await httpClient.GetAsync(urls[i], cancellationToken);
                     string body = await response.Content.ReadAsStringAsync();
                     report.ServerStatusSnapshots.Add(body);
-                    report.LootPickups = Math.Max(report.LootPickups, report.LootPickups + ReadJsonInt(body, "acceptedPickupAttempts"));
-                    report.DuplicateLootPrevented += ReadJsonInt(body, "duplicateLootPickups");
-                    report.FireRequests = Math.Max(report.FireRequests, report.FireRequests + ReadJsonInt(body, "acceptedFireRequests"));
-                    report.GrenadesThrown = Math.Max(report.GrenadesThrown, report.GrenadesThrown + ReadJsonInt(body, "grenadesThrown"));
-                    report.GrenadesExploded += ReadJsonInt(body, "grenadesExploded");
-                    report.ZoneDamageTicks += ReadJsonInt(body, "zoneDamageTicks");
-                    report.MedItemsUsed = Math.Max(report.MedItemsUsed, report.MedItemsUsed + ReadJsonInt(body, "medItemsUsed"));
+                    ApplyPhase06ServerMetricsFromStatusJson(report, body);
                 }
                 catch (Exception ex)
                 {
                     report.MetricCollectionGaps.Add("Phase 06 game-server status collection failed: " + ex.GetType().Name + " " + urls[i]);
                 }
             }
+        }
+
+        private static void ApplyPhase06ServerMetricsFromStatusJson(LoadScenarioReport report, string body)
+        {
+            int acceptedPickups = ReadJsonInt(body, "acceptedPickupAttempts");
+            report.LootPickups += acceptedPickups;
+            report.DuplicateLootPrevented += ReadJsonInt(body, "duplicateLootPickups");
+            report.FireRequests += ReadJsonInt(body, "acceptedFireRequests");
+            report.GrenadesThrown += ReadJsonInt(body, "grenadesThrown");
+            report.GrenadesExploded += ReadJsonInt(body, "grenadesExploded");
+            report.ZoneDamageTicks += ReadJsonInt(body, "zoneDamageTicks");
+            report.MedItemsUsed += ReadJsonInt(body, "medItemsUsed");
+
+            if (acceptedPickups > 1)
+                report.DuplicateLootSucceeded = true;
         }
 
         private static int ReadJsonInt(string json, string propertyName)

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="4" result="Passed" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-20 23:00:48Z" end-time="2026-09-20 23:00:48Z" duration="0,0630821">
+  <test-suite type="TestSuite" id="1000" name="My project" fullname="My project" runstate="Runnable" testcasecount="142" result="Passed" start-time="2026-09-20 23:00:48Z" end-time="2026-09-20 23:00:48Z" duration="0.063082" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1172" name="LH.Main.Unity.EditMode.Tests.dll" fullname="D:/LH_MAIN/.worktrees/phase-06-core-match/Library/ScriptAssemblies/LH.Main.Unity.EditMode.Tests.dll" runstate="Runnable" testcasecount="142" result="Passed" start-time="2026-09-20 23:00:48Z" end-time="2026-09-20 23:00:48Z" duration="0.050518" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="30164" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestFixture" id="1037" name="HeadlessMatchBotTests" fullname="HeadlessMatchBotTests" classname="HeadlessMatchBotTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-09-20 23:00:48Z" end-time="2026-09-20 23:00:48Z" duration="0.045445" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1038" name="GetMoveForElapsedSecondsFollowsDeterministicRoute" fullname="HeadlessMatchBotTests.GetMoveForElapsedSecondsFollowsDeterministicRoute" methodname="GetMoveForElapsedSecondsFollowsDeterministicRoute" classname="HeadlessMatchBotTests" runstate="Runnable" seed="104535905" result="Passed" start-time="2026-09-20 23:00:48Z" end-time="2026-09-20 23:00:48Z" duration="0.019749" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1039" name="GetPhase05OutcomeForClientIndexSplitsClientsIntoThreeDeterministicPaths" fullname="HeadlessMatchBotTests.GetPhase05OutcomeForClientIndexSplitsClientsIntoThreeDeterministicPaths" methodname="GetPhase05OutcomeForClientIndexSplitsClientsIntoThreeDeterministicPaths" classname="HeadlessMatchBotTests" runstate="Runnable" seed="946269918" result="Passed" start-time="2026-09-20 23:00:48Z" end-time="2026-09-20 23:00:48Z" duration="0.001811" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1040" name="GetPhase06ActionForElapsedSecondsFollowsDeterministicActionWindows" fullname="HeadlessMatchBotTests.GetPhase06ActionForElapsedSecondsFollowsDeterministicActionWindows" methodname="GetPhase06ActionForElapsedSecondsFollowsDeterministicActionWindows" classname="HeadlessMatchBotTests" runstate="Runnable" seed="731567768" result="Passed" start-time="2026-09-20 23:00:48Z" end-time="2026-09-20 23:00:48Z" duration="0.000699" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1041" name="Phase06LootPickupTargetsSeededServerLootId" fullname="HeadlessMatchBotTests.Phase06LootPickupTargetsSeededServerLootId" methodname="Phase06LootPickupTargetsSeededServerLootId" classname="HeadlessMatchBotTests" runstate="Runnable" seed="1150080795" result="Passed" start-time="2026-09-20 23:00:48Z" end-time="2026-09-20 23:00:48Z" duration="0.004021" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[Saving results to: C:/Users/Maany/AppData/LocalLow/DefaultCompany/My project\TestResults.xml
+]]></output>
+        </test-case>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

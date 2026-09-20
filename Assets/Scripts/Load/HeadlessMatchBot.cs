@@ -83,6 +83,7 @@ namespace LH.Main.Unity.Load
     public sealed class HeadlessMatchBot
     {
         public const double SegmentSeconds = 10d;
+        public static Guid Phase06LootId => Guid.Parse("11111111-2222-3333-4444-555555555555");
 
         public static BotMove GetMoveForElapsedSeconds(double elapsedSeconds)
         {
@@ -207,7 +208,7 @@ namespace LH.Main.Unity.Load
                 case BotPhase06Action.PickupLoot:
                     if (!result.PickedUpLoot)
                     {
-                        player.ServerPickupLoot(Guid.Empty, Guid.NewGuid());
+                        player.ServerPickupLoot(Phase06LootId, Guid.NewGuid());
                         result.PickedUpLoot = true;
                     }
                     break;

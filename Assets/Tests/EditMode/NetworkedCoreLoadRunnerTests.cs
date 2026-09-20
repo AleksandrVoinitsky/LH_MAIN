@@ -254,6 +254,69 @@ public sealed class NetworkedCoreLoadRunnerTests
     }
 
     [Test]
+    public void Phase06BotResultsDoNotPopulateAuthoritativeCoverageCounters()
+    {
+        var report = new LoadScenarioReport(DateTime.UtcNow, 60, 1);
+        var result = new BotResult
+        {
+            Connected = true,
+            Spawned = true,
+            Moved = true,
+            DisconnectedCleanly = true,
+            PickedUpLoot = true,
+            FiredWeapon = true,
+            ReloadedWeapon = true,
+            ThrewGrenade = true,
+            UsedMedItem = true
+        };
+        MethodInfo method = GetPrivateStaticMethod(
+            "ApplyBotResultToReport",
+            typeof(LoadScenarioReport),
+            typeof(BotResult),
+            typeof(bool),
+            typeof(bool));
+
+        Assert.That(method, Is.Not.Null);
+
+        method.Invoke(null, new object[] { report, result, false, true });
+
+        Assert.That(report.CompletedClients, Is.EqualTo(1));
+        Assert.That(report.LootPickups, Is.EqualTo(0));
+        Assert.That(report.FireRequests, Is.EqualTo(0));
+        Assert.That(report.ReloadRequests, Is.EqualTo(0));
+        Assert.That(report.GrenadesThrown, Is.EqualTo(0));
+        Assert.That(report.MedItemsUsed, Is.EqualTo(0));
+        Assert.That(report.ZoneDamageTicks, Is.EqualTo(0));
+    }
+
+    [Test]
+    public void Phase06ServerStatusPopulatesAuthoritativeCoverageAndDuplicateSuccess()
+    {
+        var report = new LoadScenarioReport(DateTime.UtcNow, 60, 64);
+        MethodInfo method = GetPrivateStaticMethod(
+            "ApplyPhase06ServerMetricsFromStatusJson",
+            typeof(LoadScenarioReport),
+            typeof(string));
+
+        Assert.That(method, Is.Not.Null);
+
+        method.Invoke(null, new object[]
+        {
+            report,
+            "{\"acceptedPickupAttempts\":2,\"duplicateLootPickups\":7,\"acceptedFireRequests\":9,\"grenadesThrown\":3,\"grenadesExploded\":4,\"zoneDamageTicks\":5,\"medItemsUsed\":6}"
+        });
+
+        Assert.That(report.LootPickups, Is.EqualTo(2));
+        Assert.That(report.DuplicateLootPrevented, Is.EqualTo(7));
+        Assert.That(report.FireRequests, Is.EqualTo(9));
+        Assert.That(report.GrenadesThrown, Is.EqualTo(3));
+        Assert.That(report.GrenadesExploded, Is.EqualTo(4));
+        Assert.That(report.ZoneDamageTicks, Is.EqualTo(5));
+        Assert.That(report.MedItemsUsed, Is.EqualTo(6));
+        Assert.That(report.DuplicateLootSucceeded, Is.True);
+    }
+
+    [Test]
     public void BuildPhase05ResultPayloadAssignsRewardCodeToEveryOutcome()
     {
         Type runnerType = Type.GetType("LH.Main.Unity.Editor.NetworkedCoreLoadRunner, Assembly-CSharp-Editor");

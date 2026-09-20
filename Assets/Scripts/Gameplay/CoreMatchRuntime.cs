@@ -8,6 +8,8 @@ namespace LH.Main.Unity.Gameplay
 {
     public sealed class CoreMatchRuntime
     {
+        public static readonly Guid InitialLootId = Guid.Parse("11111111-2222-3333-4444-555555555555");
+
         private const int InventorySlots = 8;
         private const int MedHealAmount = 35;
         private const float LootInteractionRange = 3f;
@@ -32,7 +34,7 @@ namespace LH.Main.Unity.Gameplay
             RegisterDefinition(new ItemDefinition(MedItemId, ItemCategory.MedItem, 5, true));
             RegisterDefinition(new ItemDefinition(GrenadeItemId, ItemCategory.Grenade, 5, true));
             RegisterDefinition(new ItemDefinition(ValueItemId, ItemCategory.QuestValue, 99, false));
-            _loot.Add(Guid.NewGuid(), new LootRuntimeEntry(new ItemStack(ValueItemId, 1), Vector3.zero));
+            _loot.Add(InitialLootId, new LootRuntimeEntry(new ItemStack(ValueItemId, 1), Vector3.zero));
         }
 
         public int LastTickZoneDamageTicks { get; private set; }

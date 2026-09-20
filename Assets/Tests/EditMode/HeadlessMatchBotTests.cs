@@ -1,4 +1,5 @@
 using System;
+using LH.Main.Unity.Gameplay;
 using LH.Main.Unity.Load;
 using NUnit.Framework;
 
@@ -32,6 +33,13 @@ public sealed class HeadlessMatchBotTests
         Assert.That(HeadlessMatchBot.GetPhase06ActionForElapsedSeconds(5d), Is.EqualTo(BotPhase06Action.ReloadWeapon));
         Assert.That(HeadlessMatchBot.GetPhase06ActionForElapsedSeconds(7d), Is.EqualTo(BotPhase06Action.ThrowGrenade));
         Assert.That(HeadlessMatchBot.GetPhase06ActionForElapsedSeconds(9d), Is.EqualTo(BotPhase06Action.UseMedItem));
+    }
+
+    [Test]
+    public void Phase06LootPickupTargetsSeededServerLootId()
+    {
+        Assert.That(HeadlessMatchBot.Phase06LootId, Is.Not.EqualTo(Guid.Empty));
+        Assert.That(HeadlessMatchBot.Phase06LootId, Is.EqualTo(CoreMatchRuntime.InitialLootId));
     }
 
     private static void AssertMove(double elapsedSeconds, float expectedX, float expectedY)
