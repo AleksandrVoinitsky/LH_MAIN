@@ -2,6 +2,7 @@
     "name": "LH.Main.Unity.EditMode.Tests",
     "rootNamespace": "",
     "references": [
+        "LH.Main.Unity.Gameplay",
         "LH.Main.Unity.Networking",
         "LH.Main.Unity.Server",
         "LH.Main.Unity.Client",

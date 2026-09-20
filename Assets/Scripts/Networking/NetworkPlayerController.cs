@@ -1,4 +1,5 @@
 using FishNet.Object;
+using LH.Main.Unity.Gameplay;
 using UnityEngine;
 
 namespace LH.Main.Unity.Networking
@@ -10,6 +11,7 @@ namespace LH.Main.Unity.Networking
         private double _lastAcceptedMovementCommandServerTime;
 
         public MovementState AuthoritativeState => _movementState;
+        public PlayerLifeState LifeState { get; set; } = PlayerLifeState.Alive;
 
         public override void OnStartServer()
         {
@@ -23,6 +25,17 @@ namespace LH.Main.Unity.Networking
         [ServerRpc]
         public void ServerApplyInput(MovementCommand command)
         {
+            ApplyAuthoritativeInput(command);
+        }
+
+        public void ApplyAuthoritativeInput(MovementCommand command)
+        {
+            if (LifeState.IsTerminal())
+            {
+                GameServerMetrics.RecordInvalidInput("state_terminal");
+                return;
+            }
+
             double serverTime = Time.realtimeSinceStartupAsDouble;
             float deltaTime = _hasAcceptedMovementCommand
                 ? (float)(serverTime - _lastAcceptedMovementCommandServerTime)
