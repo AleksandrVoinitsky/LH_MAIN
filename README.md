@@ -229,6 +229,24 @@ disconnect-until-finalization outcomes, and the JSON report records gameplay-loo
 fields: `extractedClients`, `deadClients`, `disconnectedOutcomeClients`,
 `resultSubmitted`, `duplicateResultAccepted`, and `rewardTransactions`.
 
+Final Task 8 verification was run against a clean Compose database rebuilt with:
+
 ```powershell
-& "C:\Program Files\Unity\Hub\Editor\6000.3.14f1\Editor\Unity.exe" -batchmode -projectPath "D:\LH_MAIN-phase-02" -executeMethod LH.Main.Unity.Editor.NetworkedCoreLoadRunner.Run -lhClients 64 -lhDurationSeconds 300 -lhPhase05GameplayLoop true -lhReportPath ".superpowers/sdd/2026-09-20-phase-05-gameplay-loop/task-7-final-load-64.json" -quit
+dotnet test server\LH.Main.Server.sln --configuration Release
+& "C:\Program Files\Unity\Hub\Editor\6000.3.14f1\Editor\Unity.exe" -batchmode -projectPath "D:\LH_MAIN-phase-02" -runTests -testPlatform EditMode -testResults ".superpowers/sdd/2026-09-20-phase-05-gameplay-loop/task-8-final-editmode.xml" -quit
+docker compose --env-file .env.example --profile game-servers down --volumes
+docker compose --env-file .env.example --profile game-servers up --build --detach --wait backend-api game-server-1 game-server-2
+```
+
+Unity Editor `-quit` returned before refreshing XML/JSON in this environment, so
+the same Unity commands were rerun without `-quit` for final evidence. Final
+reports:
+
+- `.superpowers/sdd/2026-09-20-phase-05-gameplay-loop/task-8-final-editmode.xml`: `83/83` EditMode tests passed.
+- `.superpowers/sdd/2026-09-20-phase-05-gameplay-loop/task-8-final-load-smoke.json`: `targetClients=1`, `failedClients=0`, `resultSubmitted=true`, `duplicateResultAccepted=true`, `rewardTransactions=1`, no disconnect reasons, no metric gaps.
+- `.superpowers/sdd/2026-09-20-phase-05-gameplay-loop/task-8-final-load-64.json`: `targetClients=64`, `connectedClients=64`, `spawnedClients=64`, `completedClients=64`, `failedClients=0`, `extractedClients=22`, `deadClients=21`, `disconnectedOutcomeClients=21`, `resultSubmitted=true`, `duplicateResultAccepted=true`, `rewardTransactions=64`, no disconnect reasons, no metric gaps.
+
+```powershell
+& "C:\Program Files\Unity\Hub\Editor\6000.3.14f1\Editor\Unity.exe" -batchmode -projectPath "D:\LH_MAIN-phase-02" -executeMethod LH.Main.Unity.Editor.NetworkedCoreLoadRunner.Run -lhClients 1 -lhDurationSeconds 30 -lhPhase05GameplayLoop true -lhReportPath ".superpowers/sdd/2026-09-20-phase-05-gameplay-loop/task-8-final-load-smoke.json"
+& "C:\Program Files\Unity\Hub\Editor\6000.3.14f1\Editor\Unity.exe" -batchmode -projectPath "D:\LH_MAIN-phase-02" -executeMethod LH.Main.Unity.Editor.NetworkedCoreLoadRunner.Run -lhClients 64 -lhDurationSeconds 300 -lhPhase05GameplayLoop true -lhReportPath ".superpowers/sdd/2026-09-20-phase-05-gameplay-loop/task-8-final-load-64.json"
 ```

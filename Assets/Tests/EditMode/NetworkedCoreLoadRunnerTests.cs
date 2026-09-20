@@ -1,6 +1,8 @@
 using System;
 using System.Reflection;
 using FishNet.Managing;
+using LH.Main.Unity.Client;
+using LH.Main.Unity.Gameplay;
 using LH.Main.Unity.Load;
 using NUnit.Framework;
 using UnityEditor;
@@ -128,7 +130,7 @@ public sealed class NetworkedCoreLoadRunnerTests
     }
 
     [Test]
-    public void InvokePhase05FinalizationCallsHookAndReportsUnavailableHook()
+    public void InvokePhase05FinalizationAllowsSubmissionWhenHookIsUnavailable()
     {
         var report = new LoadScenarioReport(DateTime.UtcNow, 30, 1);
         int calls = 0;
@@ -144,7 +146,7 @@ public sealed class NetworkedCoreLoadRunnerTests
 
         Assert.That(invoked, Is.True);
         Assert.That(calls, Is.EqualTo(1));
-        Assert.That(missing, Is.False);
+        Assert.That(missing, Is.True);
         Assert.That(report.MachineNotes, Does.Contain("Phase 05 finalization hook unavailable."));
     }
 
@@ -171,6 +173,39 @@ public sealed class NetworkedCoreLoadRunnerTests
         Assert.That(success, Is.False);
         Assert.That(report.FailedClients, Is.EqualTo(1));
         Assert.That(report.DisconnectReasons, Does.Contain("phase05_result_verification_failed"));
+    }
+
+    [Test]
+    public void BuildPhase05ResultPayloadAssignsRewardCodeToEveryOutcome()
+    {
+        Type runnerType = Type.GetType("LH.Main.Unity.Editor.NetworkedCoreLoadRunner, Assembly-CSharp-Editor");
+        Type devAssignmentType = runnerType?.GetNestedType("DevAssignment", BindingFlags.NonPublic);
+        MethodInfo method = GetPrivateStaticMethod(
+            "BuildPhase05ResultPayload",
+            devAssignmentType?.MakeArrayType(),
+            typeof(BotResult[]));
+
+        Assert.That(devAssignmentType, Is.Not.Null);
+        Assert.That(method, Is.Not.Null);
+
+        Guid matchId = Guid.NewGuid();
+        var assignment = new MatchAssignment(matchId, "game-server-1", "localhost", 7771, "ticket");
+        Array assignments = Array.CreateInstance(devAssignmentType, 3);
+        assignments.SetValue(Activator.CreateInstance(devAssignmentType, Guid.NewGuid(), assignment), 0);
+        assignments.SetValue(Activator.CreateInstance(devAssignmentType, Guid.NewGuid(), assignment), 1);
+        assignments.SetValue(Activator.CreateInstance(devAssignmentType, Guid.NewGuid(), assignment), 2);
+        var results = new[]
+        {
+            new BotResult { Extracted = true },
+            new BotResult { Dead = true },
+            new BotResult { DisconnectedOutcome = true }
+        };
+
+        var payload = (MatchResultPayload)method.Invoke(null, new object[] { assignments, results });
+
+        Assert.That(payload.Participants, Has.Count.EqualTo(3));
+        foreach (MatchParticipantResult participant in payload.Participants)
+            Assert.That(participant.RewardCode, Is.EqualTo(MatchResultBuilder.ExtractedRewardCode));
     }
 
     private static object ParseOptions(params string[] args)

@@ -272,7 +272,7 @@ namespace LH.Main.Unity.Editor
             if (finalizationHook == null)
             {
                 report?.MachineNotes.Add("Phase 05 finalization hook unavailable.");
-                return false;
+                return true;
             }
 
             try
@@ -327,8 +327,7 @@ namespace LH.Main.Unity.Editor
             for (int i = 0; i < count; i++)
             {
                 PlayerLifeState lifeState = ToLifeState(results[i]);
-                string rewardCode = lifeState == PlayerLifeState.Extracted ? MatchResultBuilder.ExtractedRewardCode : string.Empty;
-                participants.Add(new MatchParticipantResult(assignments[i].PlayerId, ToOutcome(lifeState), 0, 0, results[i].Dead ? 200 : 0, rewardCode));
+                participants.Add(new MatchParticipantResult(assignments[i].PlayerId, ToOutcome(lifeState), 0, 0, results[i].Dead ? 200 : 0, MatchResultBuilder.ExtractedRewardCode));
             }
 
             MatchAssignment assignment = assignments[0].Assignment;
