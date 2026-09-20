@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using LH.Main.Unity.Gameplay;
+using LH.Main.Unity.Gameplay.Items;
 using NUnit.Framework;
 using UnityEngine;
 

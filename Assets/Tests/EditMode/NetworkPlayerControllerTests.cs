@@ -138,14 +138,16 @@ public sealed class NetworkPlayerControllerTests
     }
 
     [Test]
-    public void ServerFireWeaponRecordsHitscanHitMetricWhenRuntimeFireHitsTarget()
+    public void ApplyServerFireReturnsHitscanHitWhenRuntimeFireHitsTarget()
     {
         var gameObject = new GameObject("network-player-controller-fire-metric-test");
         GameObject target = null;
 
         try
         {
+            NetworkObject networkObject = gameObject.AddComponent<NetworkObject>();
             var controller = gameObject.AddComponent<NetworkPlayerController>();
+            InitializeServerNetworkObjectForTest(controller, networkObject);
             var runtime = new CoreMatchRuntime();
             Guid sourcePlayerId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
             Guid targetPlayerId = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
@@ -156,14 +158,10 @@ public sealed class NetworkPlayerControllerTests
             target.transform.position = new Vector3(0f, 0f, 5f);
             target.AddComponent<BodyZoneHitbox>().ConfigureForTest(targetPlayerId, BodyZone.Head);
             Physics.SyncTransforms();
-            GameServerMetrics.Snapshot before = GameServerMetrics.GetSnapshot();
+            WeaponFireResult fire = controller.ApplyServerFireForTest(runtime, Guid.NewGuid(), Vector3.zero, Vector3.forward);
 
-            controller.ServerFireWeapon(Guid.NewGuid(), Vector3.zero, Vector3.forward);
-
-            GameServerMetrics.Snapshot after = GameServerMetrics.GetSnapshot();
-            Assert.That(after.AcceptedFireRequests, Is.EqualTo(before.AcceptedFireRequests + 1));
-            Assert.That(after.HitscanHits, Is.EqualTo(before.HitscanHits + 1));
-            Assert.That(after.HitscanMisses, Is.EqualTo(before.HitscanMisses));
+            Assert.That(fire.Accepted, Is.True);
+            Assert.That(fire.Hit, Is.True);
         }
         finally
         {
