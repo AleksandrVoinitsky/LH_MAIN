@@ -51,9 +51,12 @@ namespace LH.Main.Unity.Gameplay
 
         public GrenadeExplosionResult Tick(double serverTimeSeconds, IReadOnlyList<GrenadeTarget> targets)
         {
+            if (HasExploded)
+                return new GrenadeExplosionResult(false, NoDamageEvents);
+
             SimulateMovement(serverTimeSeconds);
 
-            if (HasExploded || serverTimeSeconds + TimeEpsilon < _spawnTimeSeconds + _definition.FuseSeconds)
+            if (serverTimeSeconds + TimeEpsilon < _spawnTimeSeconds + _definition.FuseSeconds)
                 return new GrenadeExplosionResult(false, NoDamageEvents);
 
             HasExploded = true;

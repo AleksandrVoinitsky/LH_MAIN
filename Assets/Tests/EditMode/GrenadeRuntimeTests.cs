@@ -120,6 +120,25 @@ public sealed class GrenadeRuntimeTests
     }
 
     [Test]
+    public void TickDoesNotMoveAuthoritativePositionAfterExplosion()
+    {
+        GrenadeDefinition definition = GrenadeDefinition.StandardFrag();
+        var runtime = new GrenadeRuntime(
+            new GrenadeThrowRequest(Guid.NewGuid(), null, Vector3.zero, Vector3.forward),
+            definition,
+            3d);
+
+        runtime.Tick(3d + definition.FuseSeconds, Array.Empty<GrenadeTarget>());
+        Vector3 explodedPosition = runtime.CurrentPosition;
+
+        GrenadeExplosionResult duplicate = runtime.Tick(3d + definition.FuseSeconds + 2d, Array.Empty<GrenadeTarget>());
+
+        Assert.That(duplicate.Exploded, Is.False);
+        Assert.That(duplicate.DamageEvents.Count, Is.EqualTo(0));
+        Assert.That(runtime.CurrentPosition, Is.EqualTo(explodedPosition));
+    }
+
+    [Test]
     public void TickStopsAuthoritativePositionAtPhysicsCollision()
     {
         var wall = GameObject.CreatePrimitive(PrimitiveType.Cube);

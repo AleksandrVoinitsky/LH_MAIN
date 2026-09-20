@@ -41,3 +41,18 @@
 - GREEN fallback command without `-quit`: `& "C:\Program Files\Unity\Hub\Editor\6000.3.14f1\Editor\Unity.exe" -batchmode -projectPath "D:\LH_MAIN\.worktrees\phase-06-core-match" -runTests -testPlatform EditMode -testResults "D:\LH_MAIN\.worktrees\phase-06-core-match\.superpowers\sdd\2026-09-21-phase-06-core-match\task-5-editmode.xml"`
 - GREEN result: XML `total="111" passed="111" failed="0"`.
 - Whitespace: `git diff --check` completed with no whitespace errors; PowerShell output contained line-ending warnings for existing Unity/project files and modified Task 5 files.
+
+## Scoped Re-Review Fix
+
+- Fixed `GrenadeRuntime.Tick` so `HasExploded` is checked before movement simulation. Duplicate/post-explosion ticks now return `Exploded = false` with no damage and leave `CurrentPosition` unchanged.
+- Added `TickDoesNotMoveAuthoritativePositionAfterExplosion` to prove post-explosion ticks do not mutate authoritative position.
+
+## Scoped Re-Review Verification
+
+- RED command with `-quit`: `& "C:\Program Files\Unity\Hub\Editor\6000.3.14f1\Editor\Unity.exe" -batchmode -quit -projectPath "D:\LH_MAIN\.worktrees\phase-06-core-match" -runTests -testPlatform EditMode -testResults "D:\LH_MAIN\.worktrees\phase-06-core-match\.superpowers\sdd\2026-09-21-phase-06-core-match\task-5-editmode.xml"`
+- RED fallback command without `-quit`: `& "C:\Program Files\Unity\Hub\Editor\6000.3.14f1\Editor\Unity.exe" -batchmode -projectPath "D:\LH_MAIN\.worktrees\phase-06-core-match" -runTests -testPlatform EditMode -testResults "D:\LH_MAIN\.worktrees\phase-06-core-match\.superpowers\sdd\2026-09-21-phase-06-core-match\task-5-editmode.xml"`
+- RED result: XML `total="112" passed="111" failed="1"`; failing test `GrenadeRuntimeTests.TickDoesNotMoveAuthoritativePositionAfterExplosion` showed `CurrentPosition` changed from `(0.00, 0.00, 6.00)` to `(0.00, 0.00, 10.00)` after duplicate tick.
+- GREEN command with `-quit`: Unity exited without refreshing the RED XML.
+- GREEN fallback command without `-quit`: `& "C:\Program Files\Unity\Hub\Editor\6000.3.14f1\Editor\Unity.exe" -batchmode -projectPath "D:\LH_MAIN\.worktrees\phase-06-core-match" -runTests -testPlatform EditMode -testResults "D:\LH_MAIN\.worktrees\phase-06-core-match\.superpowers\sdd\2026-09-21-phase-06-core-match\task-5-editmode.xml"`
+- GREEN result: XML `total="112" passed="112" failed="0"`.
+- Whitespace: `git diff --check` completed with no whitespace errors; PowerShell output contained line-ending warnings for existing Unity/project files and modified Task 5 files.
