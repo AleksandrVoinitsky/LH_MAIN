@@ -15,6 +15,15 @@ public sealed class HeadlessMatchBotTests
         AssertMove(40d, 0f, 1f);
     }
 
+    [Test]
+    public void GetPhase05OutcomeForClientIndexSplitsClientsIntoThreeDeterministicPaths()
+    {
+        Assert.That(HeadlessMatchBot.GetPhase05OutcomeForClientIndex(0), Is.EqualTo(BotPhase05Outcome.Extracted));
+        Assert.That(HeadlessMatchBot.GetPhase05OutcomeForClientIndex(1), Is.EqualTo(BotPhase05Outcome.Dead));
+        Assert.That(HeadlessMatchBot.GetPhase05OutcomeForClientIndex(2), Is.EqualTo(BotPhase05Outcome.Disconnected));
+        Assert.That(HeadlessMatchBot.GetPhase05OutcomeForClientIndex(3), Is.EqualTo(BotPhase05Outcome.Extracted));
+    }
+
     private static void AssertMove(double elapsedSeconds, float expectedX, float expectedY)
     {
         BotMove move = HeadlessMatchBot.GetMoveForElapsedSeconds(elapsedSeconds);

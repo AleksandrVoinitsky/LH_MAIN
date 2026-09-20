@@ -34,4 +34,27 @@ public sealed class LoadScenarioReportTests
         Assert.That(json, Does.Contain("\"machineNotes\":[\"note with \\\"quotes\\\"\"]"));
         Assert.That(json, Does.Contain("\"metricCollectionGaps\":[\"status unavailable\"]"));
     }
+
+    [Test]
+    public void ToJsonIncludesGameplayLoopOutcomeFields()
+    {
+        var report = new LoadScenarioReport(DateTime.UtcNow, 30, 3)
+        {
+            ExtractedClients = 1,
+            DeadClients = 1,
+            DisconnectedOutcomeClients = 1,
+            ResultSubmitted = true,
+            DuplicateResultAccepted = true,
+            RewardTransactions = 3
+        };
+
+        string json = report.ToJson();
+
+        Assert.That(json, Does.Contain("\"extractedClients\":1"));
+        Assert.That(json, Does.Contain("\"deadClients\":1"));
+        Assert.That(json, Does.Contain("\"disconnectedOutcomeClients\":1"));
+        Assert.That(json, Does.Contain("\"resultSubmitted\":true"));
+        Assert.That(json, Does.Contain("\"duplicateResultAccepted\":true"));
+        Assert.That(json, Does.Contain("\"rewardTransactions\":3"));
+    }
 }

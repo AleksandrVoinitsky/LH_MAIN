@@ -7,7 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using FishNet.Managing;
 using LH.Main.Unity.Client;
+using LH.Main.Unity.Gameplay;
 using LH.Main.Unity.Load;
+using LH.Main.Unity.Server;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -19,6 +21,8 @@ namespace LH.Main.Unity.Editor
     {
         private const string DefaultBackendUrl = "http://127.0.0.1:8080";
         private const string DefaultReportPath = ".superpowers/sdd/2026-09-20-phase-04-networked-core/task-6-load-report.json";
+        private const string Phase05DefaultReportPath = ".superpowers/sdd/2026-09-20-phase-05-gameplay-loop/task-7-final-load-64.json";
+        private const string DefaultSharedKey = "local-game-server-shared-key-change-before-deployment";
         private const string LoadRunnerScenePath = "Assets/Scenes/Server/ServerBootstrap.unity";
         private const string PendingPlayModeRunKey = "LH.Main.Unity.Editor.NetworkedCoreLoadRunner.PendingPlayModeRun";
         private const string Password = "correct-horse-battery-staple";
@@ -77,12 +81,21 @@ namespace LH.Main.Unity.Editor
                     assignmentTasks.Add(CreateAssignmentAsync(options.BackendUrl, i, cancellationSource.Token));
 
                 DevAssignment[] assignments = await Task.WhenAll(assignmentTasks);
+                GameServerBootstrap bootstrap = UnityEngine.Object.FindFirstObjectByType<GameServerBootstrap>();
+                Action<Guid, int, string> technicalDamageSink = bootstrap == null ? null : bootstrap.ApplyTechnicalDamageForLoadRunner;
                 for (int i = 0; i < assignments.Length; i++)
                 {
                     NetworkManager clientNetworkManager = CreateClientNetworkManager(networkManager, i);
                     var bot = new HeadlessMatchBot();
                     botTasks.Add(bot.RunAsync(
-                        new BotScenario(assignments[i].Assignment, assignments[i].PlayerId, options.DurationSeconds, clientNetworkManager),
+                        new BotScenario(
+                            assignments[i].Assignment,
+                            assignments[i].PlayerId,
+                            options.DurationSeconds,
+                            clientNetworkManager,
+                            i,
+                            options.Phase05GameplayLoop,
+                            technicalDamageSink),
                         cancellationSource.Token));
                 }
 
@@ -96,7 +109,14 @@ namespace LH.Main.Unity.Editor
                         report.ConnectedClients++;
                     if (result.Spawned)
                         report.SpawnedClients++;
-                    if (result.Connected && result.Spawned && result.Moved && result.DisconnectedCleanly)
+                    if (result.Extracted)
+                        report.ExtractedClients++;
+                    if (result.Dead)
+                        report.DeadClients++;
+                    if (result.DisconnectedOutcome)
+                        report.DisconnectedOutcomeClients++;
+
+                    if (IsCompletedResult(result, options.Phase05GameplayLoop))
                         report.CompletedClients++;
                     else
                     {
@@ -104,6 +124,9 @@ namespace LH.Main.Unity.Editor
                         report.DisconnectReasons.Add(string.IsNullOrWhiteSpace(result.FailureReason) ? "bot_failed" : result.FailureReason);
                     }
                 }
+
+                if (options.Phase05GameplayLoop)
+                    await SubmitPhase05ResultAsync(options, assignments, results, report, cancellationSource.Token);
 
                 exitCode = report.FailedClients == 0 && report.CompletedClients == options.Clients ? 0 : 1;
             }
@@ -229,6 +252,94 @@ namespace LH.Main.Unity.Editor
             }
         }
 
+        private static bool IsCompletedResult(BotResult result, bool phase05GameplayLoop)
+        {
+            if (!phase05GameplayLoop)
+                return result.Connected && result.Spawned && result.Moved && result.DisconnectedCleanly;
+
+            return result.Connected
+                && result.Spawned
+                && result.Moved
+                && result.DisconnectedCleanly
+                && (result.Extracted || result.Dead || result.DisconnectedOutcome);
+        }
+
+        private static async Task SubmitPhase05ResultAsync(LoadRunnerOptions options, DevAssignment[] assignments, BotResult[] results, LoadScenarioReport report, CancellationToken cancellationToken)
+        {
+            if (assignments.Length == 0)
+                return;
+
+            MatchResultPayload payload = BuildPhase05ResultPayload(assignments, results);
+            var submitter = new MatchResultSubmitter(options.BackendUrl, options.SharedKey, TimeSpan.FromSeconds(10));
+            MatchResultSubmissionOutcome first = await submitter.SubmitAsync(payload, cancellationToken);
+            ApplySubmissionOutcome(report, first);
+
+            if (!first.Accepted)
+                return;
+
+            MatchResultSubmissionOutcome duplicate = await submitter.SubmitAsync(payload, cancellationToken);
+            ApplySubmissionOutcome(report, duplicate);
+        }
+
+        private static MatchResultPayload BuildPhase05ResultPayload(DevAssignment[] assignments, BotResult[] results)
+        {
+            var participants = new List<MatchParticipantResult>(assignments.Length);
+            int count = Math.Min(assignments.Length, results.Length);
+            for (int i = 0; i < count; i++)
+            {
+                PlayerLifeState lifeState = ToLifeState(results[i]);
+                string rewardCode = lifeState == PlayerLifeState.Extracted ? MatchResultBuilder.ExtractedRewardCode : string.Empty;
+                participants.Add(new MatchParticipantResult(assignments[i].PlayerId, ToOutcome(lifeState), 0, 0, results[i].Dead ? 200 : 0, rewardCode));
+            }
+
+            MatchAssignment assignment = assignments[0].Assignment;
+            return new MatchResultPayload(Guid.NewGuid(), assignment.MatchId, assignment.ServerId, DateTime.UtcNow, participants);
+        }
+
+        private static PlayerLifeState ToLifeState(BotResult result)
+        {
+            if (result.Extracted)
+                return PlayerLifeState.Extracted;
+            if (result.Dead)
+                return PlayerLifeState.Dead;
+            return PlayerLifeState.Disconnected;
+        }
+
+        private static string ToOutcome(PlayerLifeState lifeState)
+        {
+            switch (lifeState)
+            {
+                case PlayerLifeState.Extracted:
+                    return "extracted";
+                case PlayerLifeState.Dead:
+                    return "dead";
+                default:
+                    return "disconnected";
+            }
+        }
+
+        private static void ApplySubmissionOutcome(LoadScenarioReport report, MatchResultSubmissionOutcome outcome)
+        {
+            if (report == null || !outcome.Accepted)
+                return;
+
+            ApplySubmissionOutcome(report, true, outcome.NewRewardTransactions, outcome.Duplicate);
+        }
+
+        private static void ApplySubmissionOutcome(LoadScenarioReport report, bool accepted, int newRewardTransactions, bool duplicate)
+        {
+            if (report == null || !accepted)
+                return;
+
+            if (duplicate)
+                report.DuplicateResultAccepted = newRewardTransactions == 0;
+            else
+            {
+                report.ResultSubmitted = true;
+                report.RewardTransactions = newRewardTransactions;
+            }
+        }
+
         private static string EscapeJson(string value)
         {
             return (value ?? string.Empty).Replace("\\", "\\\\", StringComparison.Ordinal)
@@ -254,25 +365,47 @@ namespace LH.Main.Unity.Editor
 
         private sealed class LoadRunnerOptions
         {
+            private readonly bool _environmentReportPathSet;
+
+            public LoadRunnerOptions()
+            {
+                string reportPath = Environment.GetEnvironmentVariable("LH_LOAD_REPORT_PATH");
+                _environmentReportPathSet = !string.IsNullOrWhiteSpace(reportPath);
+                ReportPath = _environmentReportPathSet ? reportPath : DefaultReportPath;
+            }
+
             public int Clients { get; private set; } = 1;
             public int DurationSeconds { get; private set; } = 30;
             public string BackendUrl { get; private set; } = Environment.GetEnvironmentVariable("LH_LOAD_BACKEND_URL") ?? DefaultBackendUrl;
-            public string ReportPath { get; private set; } = Environment.GetEnvironmentVariable("LH_LOAD_REPORT_PATH") ?? DefaultReportPath;
+            public string SharedKey { get; private set; } = Environment.GetEnvironmentVariable("GAME_SERVER_SHARED_KEY") ?? DefaultSharedKey;
+            public string ReportPath { get; private set; }
+            public bool Phase05GameplayLoop { get; private set; }
 
             public static LoadRunnerOptions FromCommandLine(string[] args)
             {
                 var options = new LoadRunnerOptions();
+                bool reportPathFromCommandLine = false;
                 for (int i = 0; i < args.Length; i++)
                 {
-                    if (args[i] == "--clients" && i + 1 < args.Length && int.TryParse(args[i + 1], out int clients))
+                    if ((args[i] == "--clients" || args[i] == "-lhClients") && i + 1 < args.Length && int.TryParse(args[i + 1], out int clients))
                         options.Clients = Math.Max(1, clients);
-                    if (args[i] == "--durationSeconds" && i + 1 < args.Length && int.TryParse(args[i + 1], out int durationSeconds))
+                    if ((args[i] == "--durationSeconds" || args[i] == "-lhDurationSeconds") && i + 1 < args.Length && int.TryParse(args[i + 1], out int durationSeconds))
                         options.DurationSeconds = Math.Max(1, durationSeconds);
-                    if (args[i] == "--backendUrl" && i + 1 < args.Length)
+                    if ((args[i] == "--backendUrl" || args[i] == "-lhBackendUrl") && i + 1 < args.Length)
                         options.BackendUrl = args[i + 1];
-                    if (args[i] == "--reportPath" && i + 1 < args.Length)
+                    if ((args[i] == "--sharedKey" || args[i] == "-lhSharedKey") && i + 1 < args.Length)
+                        options.SharedKey = args[i + 1];
+                    if ((args[i] == "--reportPath" || args[i] == "-lhReportPath") && i + 1 < args.Length)
+                    {
                         options.ReportPath = args[i + 1];
+                        reportPathFromCommandLine = true;
+                    }
+                    if (args[i] == "-lhPhase05GameplayLoop" && i + 1 < args.Length && bool.TryParse(args[i + 1], out bool phase05GameplayLoop))
+                        options.Phase05GameplayLoop = phase05GameplayLoop;
                 }
+
+                if (options.Phase05GameplayLoop && !options._environmentReportPathSet && !reportPathFromCommandLine)
+                    options.ReportPath = Phase05DefaultReportPath;
 
                 return options;
             }

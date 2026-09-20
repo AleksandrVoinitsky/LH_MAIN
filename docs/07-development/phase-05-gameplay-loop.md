@@ -30,3 +30,14 @@
 ## Агент может делать без согласования
 
 Использовать технические зоны и заглушки; правила начисления вне тестовой награды не добавляются.
+
+## Проверка Task 7
+
+```powershell
+dotnet test server\LH.Main.Server.sln --configuration Release
+& "C:\Program Files\Unity\Hub\Editor\6000.3.14f1\Editor\Unity.exe" -batchmode -projectPath "D:\LH_MAIN-phase-02" -runTests -testPlatform EditMode -testResults ".superpowers/sdd/2026-09-20-phase-05-gameplay-loop/task-7-final-editmode.xml" -quit
+docker compose --env-file .env.example --profile game-servers up --build --detach --wait backend-api game-server-1 game-server-2
+& "C:\Program Files\Unity\Hub\Editor\6000.3.14f1\Editor\Unity.exe" -batchmode -projectPath "D:\LH_MAIN-phase-02" -executeMethod LH.Main.Unity.Editor.NetworkedCoreLoadRunner.Run -lhClients 64 -lhDurationSeconds 300 -lhPhase05GameplayLoop true -lhReportPath ".superpowers/sdd/2026-09-20-phase-05-gameplay-loop/task-7-final-load-64.json" -quit
+```
+
+Task 7 load reports include `extractedClients`, `deadClients`, `disconnectedOutcomeClients`, `resultSubmitted`, `duplicateResultAccepted`, and `rewardTransactions` so the local Phase 05 smoke can capture the technical gameplay-loop outcomes without adding a public reward-count endpoint.

@@ -69,4 +69,79 @@ public sealed class NetworkedCoreLoadRunnerTests
         SerializedProperty persistence = serializedObject.FindProperty("_persistence");
         Assert.That(persistence.enumValueIndex, Is.EqualTo((int)NetworkManager.PersistenceType.AllowMultiple));
     }
+
+    [Test]
+    public void Phase05GameplayLoopOptionSwitchesDefaultReportPath()
+    {
+        string previousReportPath = Environment.GetEnvironmentVariable("LH_LOAD_REPORT_PATH");
+        Environment.SetEnvironmentVariable("LH_LOAD_REPORT_PATH", null);
+        try
+        {
+            object options = ParseOptions("-lhPhase05GameplayLoop", "true");
+
+            Assert.That(ReadProperty<bool>(options, "Phase05GameplayLoop"), Is.True);
+            Assert.That(ReadProperty<string>(options, "ReportPath"), Is.EqualTo(".superpowers/sdd/2026-09-20-phase-05-gameplay-loop/task-7-final-load-64.json"));
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("LH_LOAD_REPORT_PATH", previousReportPath);
+        }
+    }
+
+    [Test]
+    public void EnvironmentReportPathOverridesPhase05DefaultReportPath()
+    {
+        string previousReportPath = Environment.GetEnvironmentVariable("LH_LOAD_REPORT_PATH");
+        Environment.SetEnvironmentVariable("LH_LOAD_REPORT_PATH", "custom/report.json");
+        try
+        {
+            object options = ParseOptions("-lhPhase05GameplayLoop", "true");
+
+            Assert.That(ReadProperty<string>(options, "ReportPath"), Is.EqualTo("custom/report.json"));
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("LH_LOAD_REPORT_PATH", previousReportPath);
+        }
+    }
+
+    [Test]
+    public void ApplySubmissionOutcomeRequiresDuplicateWithNoNewRewardTransactions()
+    {
+        var report = new LoadScenarioReport(DateTime.UtcNow, 30, 3);
+        Type runnerType = Type.GetType("LH.Main.Unity.Editor.NetworkedCoreLoadRunner, Assembly-CSharp-Editor");
+        MethodInfo method = runnerType?.GetMethod(
+            "ApplySubmissionOutcome",
+            BindingFlags.Static | BindingFlags.NonPublic,
+            null,
+            new[] { typeof(LoadScenarioReport), typeof(bool), typeof(int), typeof(bool) },
+            null);
+
+        Assert.That(method, Is.Not.Null);
+
+        method.Invoke(null, new object[] { report, true, 3, false });
+        method.Invoke(null, new object[] { report, true, 0, true });
+
+        Assert.That(report.ResultSubmitted, Is.True);
+        Assert.That(report.RewardTransactions, Is.EqualTo(3));
+        Assert.That(report.DuplicateResultAccepted, Is.True);
+    }
+
+    private static object ParseOptions(params string[] args)
+    {
+        Type runnerType = Type.GetType("LH.Main.Unity.Editor.NetworkedCoreLoadRunner, Assembly-CSharp-Editor");
+        Type optionsType = runnerType?.GetNestedType("LoadRunnerOptions", BindingFlags.NonPublic);
+        MethodInfo method = optionsType?.GetMethod("FromCommandLine", BindingFlags.Static | BindingFlags.Public);
+
+        Assert.That(method, Is.Not.Null);
+        return method.Invoke(null, new object[] { args });
+    }
+
+    private static T ReadProperty<T>(object target, string propertyName)
+    {
+        PropertyInfo property = target.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+        Assert.That(property, Is.Not.Null);
+        return (T)property.GetValue(target);
+    }
 }

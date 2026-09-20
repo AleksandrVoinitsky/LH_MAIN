@@ -14,6 +14,12 @@ namespace LH.Main.Unity.Load
         public int SpawnedClients { get; set; }
         public int CompletedClients { get; set; }
         public int FailedClients { get; set; }
+        public int ExtractedClients { get; set; }
+        public int DeadClients { get; set; }
+        public int DisconnectedOutcomeClients { get; set; }
+        public bool ResultSubmitted { get; set; }
+        public bool DuplicateResultAccepted { get; set; }
+        public int RewardTransactions { get; set; }
         public List<string> ServerStatusSnapshots { get; } = new List<string>();
         public List<string> DisconnectReasons { get; } = new List<string>();
         public List<string> MachineNotes { get; } = new List<string>();
@@ -58,6 +64,12 @@ namespace LH.Main.Unity.Load
                 + $"\"spawnedClients\":{SpawnedClients},"
                 + $"\"completedClients\":{CompletedClients},"
                 + $"\"failedClients\":{FailedClients},"
+                + $"\"extractedClients\":{ExtractedClients},"
+                + $"\"deadClients\":{DeadClients},"
+                + $"\"disconnectedOutcomeClients\":{DisconnectedOutcomeClients},"
+                + $"\"resultSubmitted\":{JsonBool(ResultSubmitted)},"
+                + $"\"duplicateResultAccepted\":{JsonBool(DuplicateResultAccepted)},"
+                + $"\"rewardTransactions\":{RewardTransactions},"
                 + $"\"serverStatusSnapshots\":{RawJsonArray(ServerStatusSnapshots)},"
                 + $"\"disconnectReasons\":{StringArray(DisconnectReasons)},"
                 + $"\"machineNotes\":{StringArray(MachineNotes)},"
@@ -77,6 +89,11 @@ namespace LH.Main.Unity.Load
                 escaped[i] = "\"" + Escape(values[i]) + "\"";
 
             return "[" + string.Join(",", escaped) + "]";
+        }
+
+        private static string JsonBool(bool value)
+        {
+            return value ? "true" : "false";
         }
 
         private static string Escape(string value)

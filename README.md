@@ -220,3 +220,15 @@ Final local runtime reports were generated against a clean Compose database:
 
 - `.superpowers/sdd/2026-09-20-phase-04-networked-core/task-7-final-load-smoke.json`: `1/1` clients connected, spawned, moved, and disconnected cleanly.
 - `.superpowers/sdd/2026-09-20-phase-04-networked-core/task-7-final-load-64.json`: `64/64` clients connected, spawned, moved for 300 seconds, and disconnected cleanly with `failedClients=0`.
+
+## Phase 05: gameplay loop load report
+
+Phase 05 extends the local load runner with `-lhPhase05GameplayLoop true`. In that
+mode, clients are split deterministically across extraction, technical death, and
+disconnect-until-finalization outcomes, and the JSON report records gameplay-loop
+fields: `extractedClients`, `deadClients`, `disconnectedOutcomeClients`,
+`resultSubmitted`, `duplicateResultAccepted`, and `rewardTransactions`.
+
+```powershell
+& "C:\Program Files\Unity\Hub\Editor\6000.3.14f1\Editor\Unity.exe" -batchmode -projectPath "D:\LH_MAIN-phase-02" -executeMethod LH.Main.Unity.Editor.NetworkedCoreLoadRunner.Run -lhClients 64 -lhDurationSeconds 300 -lhPhase05GameplayLoop true -lhReportPath ".superpowers/sdd/2026-09-20-phase-05-gameplay-loop/task-7-final-load-64.json" -quit
+```
