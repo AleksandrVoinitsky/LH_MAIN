@@ -23,23 +23,36 @@ namespace LH.Main.Unity.Gameplay
 
         private readonly Guid _grenadeId;
         private readonly Guid? _sourcePlayerId;
-        private readonly Vector3 _spawnPosition;
         private readonly double _spawnTimeSeconds;
         private readonly GrenadeDefinition _definition;
+        private readonly Vector3 _velocity;
+        private double _lastSimulatedTimeSeconds;
+        private bool _hasCollided;
 
         public GrenadeRuntime(GrenadeThrowRequest request, GrenadeDefinition definition, double spawnTimeSeconds)
         {
+            if (!IsFinite(request.SpawnPosition))
+                throw new ArgumentException("grenade_spawn_position_invalid", nameof(request));
+
+            if (!IsFinite(request.ThrowDirection) || request.ThrowDirection.sqrMagnitude <= TimeEpsilon)
+                throw new ArgumentException("grenade_throw_direction_invalid", nameof(request));
+
             _grenadeId = request.GrenadeId;
             _sourcePlayerId = request.SourcePlayerId;
-            _spawnPosition = request.SpawnPosition;
             _spawnTimeSeconds = spawnTimeSeconds;
             _definition = definition ?? throw new ArgumentNullException(nameof(definition));
+            CurrentPosition = request.SpawnPosition;
+            _velocity = request.ThrowDirection.normalized * _definition.InitialSpeed;
+            _lastSimulatedTimeSeconds = spawnTimeSeconds;
         }
 
         public bool HasExploded { get; private set; }
+        public Vector3 CurrentPosition { get; private set; }
 
         public GrenadeExplosionResult Tick(double serverTimeSeconds, IReadOnlyList<GrenadeTarget> targets)
         {
+            SimulateMovement(serverTimeSeconds);
+
             if (HasExploded || serverTimeSeconds + TimeEpsilon < _spawnTimeSeconds + _definition.FuseSeconds)
                 return new GrenadeExplosionResult(false, NoDamageEvents);
 
@@ -50,7 +63,7 @@ namespace LH.Main.Unity.Gameplay
                 for (int i = 0; i < targets.Count; i++)
                 {
                     GrenadeTarget target = targets[i];
-                    float distance = Vector3.Distance(_spawnPosition, target.Position);
+                    float distance = Vector3.Distance(CurrentPosition, target.Position);
                     if (distance > _definition.Radius)
                         continue;
 
@@ -61,6 +74,32 @@ namespace LH.Main.Unity.Gameplay
             }
 
             return new GrenadeExplosionResult(true, damageEvents.ToArray());
+        }
+
+        private void SimulateMovement(double serverTimeSeconds)
+        {
+            if (_hasCollided || serverTimeSeconds <= _lastSimulatedTimeSeconds)
+                return;
+
+            float deltaTime = (float)(serverTimeSeconds - _lastSimulatedTimeSeconds);
+            Vector3 movement = _velocity * deltaTime;
+            float distance = movement.magnitude;
+            if (distance > 0f && Physics.Raycast(CurrentPosition, movement.normalized, out RaycastHit hit, distance))
+            {
+                CurrentPosition = hit.point;
+                _hasCollided = true;
+            }
+            else
+            {
+                CurrentPosition += movement;
+            }
+
+            _lastSimulatedTimeSeconds = serverTimeSeconds;
+        }
+
+        private static bool IsFinite(Vector3 value)
+        {
+            return float.IsFinite(value.x) && float.IsFinite(value.y) && float.IsFinite(value.z);
         }
     }
 }
