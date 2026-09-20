@@ -6,6 +6,8 @@ public sealed class GameServerOptions
 
     public int TicketLifetimeSeconds { get; set; }
 
+    public int MaxPlayersPerMatch { get; set; } = 64;
+
     public List<GameServerSlotOptions> Slots { get; set; } = [];
 
     public TimeSpan GetTicketLifetime() => TimeSpan.FromSeconds(TicketLifetimeSeconds);
@@ -15,6 +17,7 @@ public sealed class GameServerOptions
         var errors = new List<string>();
         if (string.IsNullOrWhiteSpace(SharedKey)) errors.Add("GameServers:SharedKey is required.");
         if (TicketLifetimeSeconds <= 0) errors.Add("GameServers:TicketLifetimeSeconds must be greater than zero.");
+        if (MaxPlayersPerMatch <= 0) errors.Add("GameServers:MaxPlayersPerMatch must be greater than zero.");
         if (Slots.Count == 0) errors.Add("At least one GameServers:Slots entry is required.");
 
         foreach (var slot in Slots)

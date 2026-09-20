@@ -21,6 +21,7 @@ public sealed class MatchmakingService(
     public async Task<MatchmakingStatusResponse> EnqueueAsync(Guid playerId, CancellationToken cancellationToken)
     {
         await using var transaction = await database.Database.BeginTransactionAsync(cancellationToken);
+        await LockMatchmakingAsync(cancellationToken);
         await LockPlayerAsync(playerId, cancellationToken);
 
         var activeEntry = await GetActiveEntryAsync(playerId, cancellationToken);
@@ -54,6 +55,7 @@ public sealed class MatchmakingService(
     public async Task<MatchmakingStatusResponse> GetStatusAsync(Guid playerId, CancellationToken cancellationToken)
     {
         await using var transaction = await database.Database.BeginTransactionAsync(cancellationToken);
+        await LockMatchmakingAsync(cancellationToken);
         await LockPlayerAsync(playerId, cancellationToken);
 
         var activeEntry = await GetActiveEntryAsync(playerId, cancellationToken);
@@ -154,6 +156,10 @@ public sealed class MatchmakingService(
         $"SELECT pg_advisory_xact_lock(hashtextextended({playerId.ToString()}, 0))",
         cancellationToken);
 
+    private Task<int> LockMatchmakingAsync(CancellationToken cancellationToken) => database.Database.ExecuteSqlRawAsync(
+        "SELECT pg_advisory_xact_lock(hashtextextended('matchmaking-assignment', 0))",
+        cancellationToken);
+
     private bool ServerKeyMatches(string serverKey)
     {
         var configuredKey = gameServerOptions.Value.SharedKey;
@@ -206,7 +212,7 @@ public sealed class MatchmakingService(
         var now = clock.UtcNow;
         var ticket = await database.MatchTickets
             .AsNoTracking()
-            .SingleOrDefaultAsync(candidate => candidate.MatchId == matchId, cancellationToken);
+            .SingleOrDefaultAsync(candidate => candidate.MatchId == matchId && candidate.PlayerId == entry.PlayerId, cancellationToken);
         if (ticket is null || ticket.ConsumedAtUtc is not null || ticket.ExpiresAtUtc > now)
         {
             return false;
@@ -251,6 +257,12 @@ public sealed class MatchmakingService(
         CancellationToken cancellationToken)
     {
         await ExpireStaleAssignmentsAsync(now, cancellationToken);
+
+        var occupiedSlot = await TryAssignExistingMatchAsync(entry, now, cancellationToken);
+        if (occupiedSlot is not null)
+        {
+            return occupiedSlot;
+        }
 
         var slot = await database.GameServerSlots
             .AsNoTracking()
@@ -320,6 +332,68 @@ public sealed class MatchmakingService(
                 slot.PublicPort,
                 ticket.PlaintextTicket,
                 ticket.ExpiresAtUtc));
+    }
+
+    private async Task<MatchmakingStatusResponse?> TryAssignExistingMatchAsync(
+        MatchQueueEntry entry,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        var activeSlots = await (
+            from slot in database.GameServerSlots.AsNoTracking()
+            join match in database.Matches.AsNoTracking() on slot.CurrentMatchId equals match.Id
+            where slot.Status == GameServerSlotStatuses.Occupied
+                && (match.Status == MatchSessionStatuses.Reserved || match.Status == MatchSessionStatuses.TicketValidated)
+            orderby slot.ServerId
+            select new
+            {
+                slot.ServerId,
+                slot.PublicHost,
+                slot.PublicPort,
+                MatchId = match.Id
+            })
+            .ToArrayAsync(cancellationToken);
+
+        foreach (var slot in activeSlots)
+        {
+            var assignedPlayers = await database.MatchQueueEntries
+                .AsNoTracking()
+                .CountAsync(candidate => candidate.AssignedMatchId == slot.MatchId
+                    && candidate.Status == MatchQueueEntryStatuses.Assigned, cancellationToken);
+            if (assignedPlayers >= gameServerOptions.Value.MaxPlayersPerMatch)
+            {
+                continue;
+            }
+
+            var ticket = ticketService.Issue(slot.MatchId, entry.PlayerId, slot.ServerId, gameServerOptions.Value.GetTicketLifetime());
+            database.MatchTickets.Add(new MatchTicket
+            {
+                Id = Guid.NewGuid(),
+                MatchId = slot.MatchId,
+                PlayerId = entry.PlayerId,
+                ServerId = slot.ServerId,
+                TicketHash = ticket.TicketHash,
+                ExpiresAtUtc = ticket.ExpiresAtUtc,
+                CreatedAtUtc = now
+            });
+
+            entry.Status = MatchQueueEntryStatuses.Assigned;
+            entry.AssignedMatchId = slot.MatchId;
+            entry.UpdatedAtUtc = now;
+            await database.SaveChangesAsync(cancellationToken);
+
+            return new MatchmakingStatusResponse(
+                MatchQueueEntryStatuses.Assigned,
+                Assignment: new MatchAssignmentResponse(
+                    slot.MatchId,
+                    slot.ServerId,
+                    slot.PublicHost,
+                    slot.PublicPort,
+                    ticket.PlaintextTicket,
+                    ticket.ExpiresAtUtc));
+        }
+
+        return null;
     }
 
     private async Task ExpireStaleAssignmentsAsync(DateTimeOffset now, CancellationToken cancellationToken)
@@ -399,6 +473,7 @@ public sealed class MatchmakingService(
             join slot in database.GameServerSlots.AsNoTracking() on match.ServerId equals slot.ServerId
             join ticket in database.MatchTickets.AsNoTracking() on match.Id equals ticket.MatchId
             where match.Id == matchId
+                && ticket.PlayerId == entry.PlayerId
             select new MatchAssignmentResponse(
                 match.Id,
                 slot.ServerId,

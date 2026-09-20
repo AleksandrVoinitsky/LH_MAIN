@@ -163,3 +163,60 @@ curl.exe --fail --silent --request POST http://127.0.0.1:8080/internal/v1/matche
 curl.exe --fail --silent --request POST http://127.0.0.1:8080/internal/v1/matches/tickets/validate --header "Content-Type: application/json" --header "X-Game-Server-Key: $GameServerKey" --data $User2Validation
 curl.exe --fail --silent --request POST http://127.0.0.1:8080/internal/v1/matches/tickets/validate --header "Content-Type: application/json" --header "X-Game-Server-Key: $GameServerKey" --data $User1Validation
 ```
+
+## Phase 04: game-server metrics and observers
+
+`/status` сохраняет Phase 02/03 поля и дополнительно публикует счетчики admission,
+активных accepted connections, spawned player objects, invalid movement input,
+disconnects, tick rate, tick p95, process memory и placeholder сетевого throughput.
+
+Для technical player objects используется встроенный FishNet observer management без
+кастомного transport/snapshot/replication слоя. Текущая политика оставляет базовое
+наблюдение FishNet без дополнительных observer conditions: для локального 64-client
+сценария это самый простой и предсказуемый вариант, а при росте нагрузки можно
+добавить встроенные FishNet observer conditions без изменения протокола.
+
+### Phase 04: client load smoke
+
+Task 6 adds a development-only FishNet/Tugboat client admission path and a
+deterministic headless bot route. The runner obtains dev users and match
+assignments from the local backend, sends admission via FishNet authentication
+broadcast, moves forward/right/backward/left in 10 second segments, then writes a
+JSON report. Plaintext tickets stay inside runner process memory and are not
+printed by the commands below.
+
+Start backend and game-server containers first:
+
+```powershell
+docker compose --env-file .env.example --profile game-servers up --build --detach --wait backend-api game-server-1 game-server-2
+```
+
+One-client 30 second smoke report:
+
+```powershell
+Unity.exe -batchmode -quit -projectPath . -executeMethod LH.Main.Unity.Editor.NetworkedCoreLoadRunner.Run --clients 1 --durationSeconds 30 --backendUrl http://127.0.0.1:8080 --reportPath .superpowers/sdd/2026-09-20-phase-04-networked-core/task-6-load-report.json
+```
+
+Phase 04 64-client validation report:
+
+```powershell
+Unity.exe -batchmode -quit -projectPath . -executeMethod LH.Main.Unity.Editor.NetworkedCoreLoadRunner.Run --clients 64 --durationSeconds 300 --backendUrl http://127.0.0.1:8080 --reportPath .superpowers/sdd/2026-09-20-phase-04-networked-core/task-6-load-report.json
+```
+
+The runner exits non-zero if any bot cannot connect, spawn, move, or disconnect
+cleanly. If no client scene with a FishNet `NetworkManager` and Tugboat transport
+is loaded, it still writes the report with the exact blocker in `machineNotes`.
+
+### Phase 04: current verification status
+
+As of 2026-09-20, backend verification passes, the dedicated server build works
+when using the full Unity Editor path for `6000.3.14f1`, and Compose can start
+healthy backend/game-server services from
+`Builds/GameServer/LinuxHeadless/LH.Main.GameServer.x86_64`. Backend ticket
+validation smokes pass for first-use, replay rejection, and wrong-server
+rejection.
+
+Final local runtime reports were generated against a clean Compose database:
+
+- `.superpowers/sdd/2026-09-20-phase-04-networked-core/task-7-final-load-smoke.json`: `1/1` clients connected, spawned, moved, and disconnected cleanly.
+- `.superpowers/sdd/2026-09-20-phase-04-networked-core/task-7-final-load-64.json`: `64/64` clients connected, spawned, moved for 300 seconds, and disconnected cleanly with `failedClients=0`.

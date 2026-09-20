@@ -129,6 +129,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1339331438}
   - component: {fileID: 1339331426}
+  - component: {fileID: 1339331423}
   - component: {fileID: 1339331425}
   - component: {fileID: 1339331437}
   - component: {fileID: 1339331436}
@@ -182,12 +183,25 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier: FishNet.Runtime::FishNet.Managing.NetworkManager
   _logging: {fileID: 0}
-  _spawnablePrefabs: {fileID: 0}
+  _spawnablePrefabs: {fileID: 11400000, guid: 0c07ad125ebe3e64daa6c8f2aa0f022a, type: 2}
   _refreshDefaultPrefabs: 0
   _runInBackground: 1
   _dontDestroyOnLoad: 1
   _objectPool: {fileID: 0}
   _persistence: 0
+--- !u!114 &1339331423
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1339331424}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f85f424f0a7843f69e7d5ef2f2d6484a, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: LH.Main.Unity.Networking::LH.Main.Unity.Networking.GameServerFishNetAuthenticator
+  _playerPrefab: {fileID: 4512293259955182956, guid: e6318d2b514f4f34284a91da11690357, type: 3}
 --- !u!114 &1339331427
 MonoBehaviour:
   m_ObjectHideFlags: 0

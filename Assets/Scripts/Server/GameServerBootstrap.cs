@@ -1,8 +1,11 @@
 using System;
+using System.Reflection;
+using FishNet.Authenticating;
 using FishNet.Managing;
 using FishNet.Transporting;
 using FishNet.Transporting.Tugboat;
 using UnityEngine;
+using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace LH.Main.Unity.Server
 {
@@ -13,9 +16,15 @@ namespace LH.Main.Unity.Server
 
         private readonly GameServerHealthServer _healthServer = new GameServerHealthServer();
         private GameServerConfig? _config;
+        private object? _ticketValidator;
+        private object? _admissionAuthenticator;
+        private object? _playerRegistry;
+        private Type? _metricsType;
         private GameServerState _state = GameServerState.Failed;
         private DateTime _startedAtUtc;
         private bool _subscribedToServerState;
+        private bool _subscribedToPostTick;
+        private long _lastPostTickTimestamp;
 
         private void Awake()
         {
@@ -30,6 +39,24 @@ namespace LH.Main.Unity.Server
                 return;
             }
 
+            try
+            {
+                Type ticketValidatorType = RequireNetworkingType("LH.Main.Unity.Networking.MatchTicketValidator");
+                Type admissionAuthenticatorType = RequireNetworkingType("LH.Main.Unity.Networking.GameServerAuthenticator");
+                Type playerRegistryType = RequireNetworkingType("LH.Main.Unity.Networking.ServerPlayerRegistry");
+                _metricsType = RequireNetworkingType("LH.Main.Unity.Networking.GameServerMetrics");
+
+                _ticketValidator = Activator.CreateInstance(ticketValidatorType, _config);
+                _admissionAuthenticator = Activator.CreateInstance(admissionAuthenticatorType, _config.ServerId, _ticketValidator);
+                _playerRegistry = Activator.CreateInstance(playerRegistryType);
+            }
+            catch (Exception ex)
+            {
+                _state = GameServerState.Failed;
+                Debug.LogError($"Game server admission dependencies failed to initialize: {ex.GetType().Name}");
+                Application.Quit(1);
+                return;
+            }
         }
 
         private void Start()
@@ -52,9 +79,45 @@ namespace LH.Main.Unity.Server
                 return;
             }
 
+            if (_admissionAuthenticator == null || _playerRegistry == null)
+            {
+                _state = GameServerState.Failed;
+                Debug.LogError("Game server admission dependencies are required before server startup.");
+                Application.Quit(1);
+                return;
+            }
+
+            try
+            {
+                Type fishNetAuthenticatorType = RequireNetworkingType("LH.Main.Unity.Networking.GameServerFishNetAuthenticator");
+                if (!typeof(Authenticator).IsAssignableFrom(fishNetAuthenticatorType))
+                    throw new InvalidOperationException("GameServerFishNetAuthenticator must derive from FishNet Authenticator.");
+
+                Component fishNetAuthenticatorComponent = _networkManager.GetComponent(fishNetAuthenticatorType);
+                if (fishNetAuthenticatorComponent == null)
+                    fishNetAuthenticatorComponent = _networkManager.gameObject.AddComponent(fishNetAuthenticatorType);
+
+                if (!TryConfigureAdmissionAuthenticator(fishNetAuthenticatorComponent, _admissionAuthenticator, _playerRegistry, out string configureError))
+                    throw new InvalidOperationException(configureError);
+
+                _networkManager.ServerManager.SetAuthenticator((Authenticator)fishNetAuthenticatorComponent);
+            }
+            catch (Exception ex)
+            {
+                _state = GameServerState.Failed;
+                Debug.LogError($"Game server admission dependencies failed to initialize: {ex.GetType().Name}");
+                Application.Quit(1);
+                return;
+            }
+
             _transport.SetPort(config.NetworkPort);
             _networkManager.ServerManager.OnServerConnectionState += OnServerConnectionState;
             _subscribedToServerState = true;
+            if (_networkManager.TimeManager != null)
+            {
+                _networkManager.TimeManager.OnPostTick += OnPostTick;
+                _subscribedToPostTick = true;
+            }
 
             try
             {
@@ -85,7 +148,11 @@ namespace LH.Main.Unity.Server
             if (_subscribedToServerState && _networkManager != null && _networkManager.ServerManager != null)
                 _networkManager.ServerManager.OnServerConnectionState -= OnServerConnectionState;
 
+            if (_subscribedToPostTick && _networkManager != null && _networkManager.TimeManager != null)
+                _networkManager.TimeManager.OnPostTick -= OnPostTick;
+
             _subscribedToServerState = false;
+            _subscribedToPostTick = false;
             _healthServer.Stop();
         }
 
@@ -117,14 +184,118 @@ namespace LH.Main.Unity.Server
 
         private GameServerStatus CreateStatus()
         {
-            GameServerConfig config = _config ?? new GameServerConfig("unknown", 0, 0, "unknown", 0);
+            GameServerConfig config = _config ?? new GameServerConfig("unknown", 0, 0, "unknown", 0, string.Empty, string.Empty, 0);
+            object? metricsSnapshot = GetMetricsSnapshot();
             return new GameServerStatus(
                 config.ServerId,
                 _state,
                 config.NetworkPort,
                 config.PublicHost,
                 config.PublicNetworkPort,
-                _startedAtUtc);
+                _startedAtUtc,
+                ReadIntMetric(metricsSnapshot, "ActiveConnections"),
+                ReadIntMetric(metricsSnapshot, "SpawnedPlayers"),
+                ReadLongMetric(metricsSnapshot, "AcceptedAdmissions"),
+                ReadLongMetric(metricsSnapshot, "RejectedAdmissions"),
+                ReadLongMetric(metricsSnapshot, "InvalidInputCommands"),
+                ReadLongMetric(metricsSnapshot, "Disconnects"),
+                ReadIntMetric(metricsSnapshot, "ServerTickRate"),
+                ReadDoubleMetric(metricsSnapshot, "ServerTickP95Ms"),
+                ReadLongMetric(metricsSnapshot, "ProcessMemoryMb"),
+                ReadDoubleMetric(metricsSnapshot, "InboundKbps"),
+                ReadDoubleMetric(metricsSnapshot, "OutboundKbps"));
+        }
+
+        private void OnPostTick()
+        {
+            long timestamp = Stopwatch.GetTimestamp();
+            long previousTimestamp = _lastPostTickTimestamp;
+            _lastPostTickTimestamp = timestamp;
+
+            if (previousTimestamp == 0)
+                return;
+
+            double elapsedMs = (timestamp - previousTimestamp) * 1000d / Stopwatch.Frequency;
+            InvokeMetrics("RecordServerTickSample", elapsedMs);
+        }
+
+        private object? GetMetricsSnapshot()
+        {
+            if (_metricsType == null)
+                return null;
+
+            if (_networkManager != null && _networkManager.TimeManager != null)
+                InvokeMetrics("SetServerTickRate", (int)_networkManager.TimeManager.TickRate);
+
+            MethodInfo? method = _metricsType.GetMethod("GetSnapshot", BindingFlags.Public | BindingFlags.Static);
+            return method?.Invoke(null, null);
+        }
+
+        private void InvokeMetrics(string methodName, params object[] arguments)
+        {
+            MethodInfo? method = _metricsType?.GetMethod(methodName, BindingFlags.Public | BindingFlags.Static);
+            method?.Invoke(null, arguments);
+        }
+
+        private static int ReadIntMetric(object? snapshot, string propertyName)
+        {
+            object? value = ReadMetric(snapshot, propertyName);
+            return value is int typedValue ? typedValue : 0;
+        }
+
+        private static long ReadLongMetric(object? snapshot, string propertyName)
+        {
+            object? value = ReadMetric(snapshot, propertyName);
+            return value is long typedValue ? typedValue : 0L;
+        }
+
+        private static double ReadDoubleMetric(object? snapshot, string propertyName)
+        {
+            object? value = ReadMetric(snapshot, propertyName);
+            return value is double typedValue ? typedValue : 0d;
+        }
+
+        private static object? ReadMetric(object? snapshot, string propertyName)
+        {
+            return snapshot?.GetType().GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance)?.GetValue(snapshot);
+        }
+
+        private static Type RequireNetworkingType(string typeName)
+        {
+            Type type = Type.GetType(typeName + ", LH.Main.Unity.Networking");
+            if (type == null)
+                throw new InvalidOperationException($"Required networking type was not found: {typeName}");
+
+            return type;
+        }
+
+        private static bool TryConfigureAdmissionAuthenticator(Component component, object admissionAuthenticator, object playerRegistry, out string error)
+        {
+            error = string.Empty;
+
+            MethodInfo configureMethod = component.GetType().GetMethod(
+                "Configure",
+                BindingFlags.Instance | BindingFlags.Public,
+                null,
+                new[] { admissionAuthenticator.GetType(), playerRegistry.GetType() },
+                null);
+
+            if (configureMethod == null)
+            {
+                error = "GameServerFishNetAuthenticator Configure method was not found for admission dependencies.";
+                return false;
+            }
+
+            try
+            {
+                configureMethod.Invoke(component, new[] { admissionAuthenticator, playerRegistry });
+                return true;
+            }
+            catch (Exception ex) when (ex is TargetInvocationException || ex is ArgumentException || ex is MethodAccessException)
+            {
+                error = $"GameServerFishNetAuthenticator Configure failed: {ex.GetType().Name}";
+                return false;
+            }
         }
     }
 }

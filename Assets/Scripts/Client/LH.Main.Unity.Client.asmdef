@@ -1,0 +1,17 @@
+{
+    "name": "LH.Main.Unity.Client",
+    "rootNamespace": "",
+    "references": [
+        "LH.Main.Unity.Networking",
+        "FishNet.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -104,6 +104,7 @@ public sealed class MatchmakingConcurrencyTests(PostgreSqlFixture database)
     {
         SharedKey = "local-shared-game-server-key",
         TicketLifetimeSeconds = 60,
+        MaxPlayersPerMatch = 1,
         Slots =
         [
             new GameServerSlotOptions { ServerId = "game-server-1", PublicHost = "localhost", PublicPort = 7771 }

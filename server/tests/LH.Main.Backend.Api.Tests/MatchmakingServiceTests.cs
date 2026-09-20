@@ -50,6 +50,56 @@ public sealed class MatchmakingServiceTests(PostgreSqlFixture database)
     }
 
     [Fact]
+    public async Task EnqueueAddsPlayersToReservedMatchUntilCapacity()
+    {
+        await using var context = await CreateCleanDbContextAsync();
+        var firstPlayerId = await CreateUserAsync(context, "capacity-first");
+        var secondPlayerId = await CreateUserAsync(context, "capacity-second");
+        var thirdPlayerId = await CreateUserAsync(context, "capacity-third");
+        await SeedSlotsAsync(context, "game-server-1");
+        var service = CreateService(context, maxPlayersPerMatch: 2);
+
+        var first = await service.EnqueueAsync(firstPlayerId, CancellationToken.None);
+        var second = await service.EnqueueAsync(secondPlayerId, CancellationToken.None);
+        var third = await service.EnqueueAsync(thirdPlayerId, CancellationToken.None);
+
+        Assert.Equal("assigned", first.Status);
+        Assert.Equal("assigned", second.Status);
+        Assert.Equal("queued", third.Status);
+        Assert.NotNull(first.Assignment);
+        Assert.NotNull(second.Assignment);
+        Assert.Null(third.Assignment);
+        Assert.Equal(first.Assignment.MatchId, second.Assignment.MatchId);
+        Assert.NotEqual(first.Assignment.Ticket, second.Assignment.Ticket);
+        Assert.Equal(1, await context.Matches.CountAsync());
+        Assert.Equal(2, await context.MatchTickets.CountAsync());
+        Assert.Equal(2, await context.MatchQueueEntries.CountAsync(entry => entry.Status == MatchQueueEntryStatuses.Assigned));
+    }
+
+    [Fact]
+    public async Task ConcurrentEnqueueDoesNotAssignMorePlayersThanMatchCapacity()
+    {
+        await using var context = await CreateCleanDbContextAsync();
+        List<Guid> playerIds = [];
+        for (int index = 0; index < 16; index++)
+        {
+            playerIds.Add(await CreateUserAsync(context, $"capacity-race-{index}"));
+        }
+
+        await SeedSlotsAsync(context, "game-server-1");
+
+        var assignments = await Task.WhenAll(playerIds.Select(async playerId =>
+        {
+            await using var playerContext = CreateDbContext();
+            return await CreateService(playerContext, maxPlayersPerMatch: 4).EnqueueAsync(playerId, CancellationToken.None);
+        }));
+
+        Assert.Equal(4, assignments.Count(response => response.Status == MatchQueueEntryStatuses.Assigned));
+        Assert.Equal(12, assignments.Count(response => response.Status == MatchQueueEntryStatuses.Queued));
+        Assert.Equal(4, await context.MatchQueueEntries.CountAsync(entry => entry.Status == MatchQueueEntryStatuses.Assigned));
+    }
+
+    [Fact]
     public async Task CancelQueuedEntryIsIdempotent()
     {
         await using var context = await CreateCleanDbContextAsync();
@@ -179,10 +229,10 @@ public sealed class MatchmakingServiceTests(PostgreSqlFixture database)
         return new AppDbContext(options);
     }
 
-    private static MatchmakingService CreateService(AppDbContext context, DateTimeOffset? now = null)
+    private static MatchmakingService CreateService(AppDbContext context, DateTimeOffset? now = null, int? maxPlayersPerMatch = null)
     {
         var clock = new FixedClock(now ?? DateTimeOffset.Parse("2026-09-20T00:00:00Z"));
-        return new MatchmakingService(context, new TicketService(clock), clock, Options.Create(LocalOptions()));
+        return new MatchmakingService(context, new TicketService(clock), clock, Options.Create(LocalOptions(maxPlayersPerMatch)));
     }
 
     private static async Task<Guid> CreateUserAsync(AppDbContext context, string username)
@@ -214,10 +264,11 @@ public sealed class MatchmakingServiceTests(PostgreSqlFixture database)
         await context.SaveChangesAsync();
     }
 
-    private static GameServerOptions LocalOptions() => new()
+    private static GameServerOptions LocalOptions(int? maxPlayersPerMatch = null) => new()
     {
         SharedKey = "local-shared-game-server-key",
         TicketLifetimeSeconds = 60,
+        MaxPlayersPerMatch = maxPlayersPerMatch ?? 64,
         Slots =
         [
             new GameServerSlotOptions { ServerId = "game-server-1", PublicHost = "localhost", PublicPort = 7771 },
