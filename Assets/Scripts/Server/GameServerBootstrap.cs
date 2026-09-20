@@ -21,6 +21,7 @@ namespace LH.Main.Unity.Server
         private object? _admissionAuthenticator;
         private object? _playerRegistry;
         private MatchResultSubmitter? _matchResultSubmitter;
+        private CoreMatchRuntime? _coreMatchRuntime;
         private Type? _metricsType;
         private GameServerState _state = GameServerState.Failed;
         private DateTime _startedAtUtc;
@@ -51,6 +52,7 @@ namespace LH.Main.Unity.Server
                 _ticketValidator = Activator.CreateInstance(ticketValidatorType, _config);
                 _admissionAuthenticator = Activator.CreateInstance(admissionAuthenticatorType, _config.ServerId, _ticketValidator);
                 _playerRegistry = Activator.CreateInstance(playerRegistryType);
+                _coreMatchRuntime = new CoreMatchRuntime();
                 _matchResultSubmitter = new MatchResultSubmitter(
                     _config.BackendBaseUrl,
                     _config.SharedKey,
@@ -107,6 +109,8 @@ namespace LH.Main.Unity.Server
 
                 if (!TryConfigureAdmissionAuthenticator(fishNetAuthenticatorComponent, _admissionAuthenticator, _playerRegistry, out string configureError))
                     throw new InvalidOperationException(configureError);
+
+                TryConfigureCoreRuntime(_coreMatchRuntime, _playerRegistry);
 
                 _networkManager.ServerManager.SetAuthenticator((Authenticator)fishNetAuthenticatorComponent);
             }
@@ -218,7 +222,20 @@ namespace LH.Main.Unity.Server
                 ReadLongMetric(metricsSnapshot, "DeadPlayers"),
                 ReadLongMetric(metricsSnapshot, "SubmittedMatchResults"),
                 ReadLongMetric(metricsSnapshot, "DuplicateMatchResults"),
-                ReadLongMetric(metricsSnapshot, "FailedMatchResults"));
+                ReadLongMetric(metricsSnapshot, "FailedMatchResults"),
+                ReadLongMetric(metricsSnapshot, "AcceptedPickupAttempts"),
+                ReadLongMetric(metricsSnapshot, "RejectedPickupAttempts"),
+                ReadLongMetric(metricsSnapshot, "DuplicateLootPickups"),
+                ReadLongMetric(metricsSnapshot, "InventoryFullRejections"),
+                ReadLongMetric(metricsSnapshot, "AcceptedFireRequests"),
+                ReadLongMetric(metricsSnapshot, "RejectedFireRequests"),
+                ReadLongMetric(metricsSnapshot, "HitscanHits"),
+                ReadLongMetric(metricsSnapshot, "HitscanMisses"),
+                ReadLongMetric(metricsSnapshot, "GrenadesThrown"),
+                ReadLongMetric(metricsSnapshot, "GrenadesExploded"),
+                ReadLongMetric(metricsSnapshot, "ZoneDamageTicks"),
+                ReadLongMetric(metricsSnapshot, "MedItemsUsed"),
+                ReadLongMetric(metricsSnapshot, "MedItemsRejected"));
         }
 
         public void FinalizeMatchForLoadRunner()
@@ -286,6 +303,15 @@ namespace LH.Main.Unity.Server
 
             double elapsedMs = (timestamp - previousTimestamp) * 1000d / Stopwatch.Frequency;
             InvokeMetrics("RecordServerTickSample", elapsedMs);
+            if (_coreMatchRuntime != null)
+            {
+                _coreMatchRuntime.Tick(Time.realtimeSinceStartupAsDouble);
+                for (int index = 0; index < _coreMatchRuntime.LastTickGrenadesExploded; index++)
+                    InvokeMetrics("RecordGrenadeExploded");
+
+                for (int index = 0; index < _coreMatchRuntime.LastTickZoneDamageTicks; index++)
+                    InvokeMetrics("RecordZoneDamageTick");
+            }
         }
 
         private object? GetMetricsSnapshot()
@@ -365,6 +391,16 @@ namespace LH.Main.Unity.Server
                 error = $"GameServerFishNetAuthenticator Configure failed: {ex.GetType().Name}";
                 return false;
             }
+        }
+
+        private static void TryConfigureCoreRuntime(CoreMatchRuntime? runtime, object playerRegistry)
+        {
+            if (runtime == null || playerRegistry == null)
+                return;
+
+            Type controllerType = Type.GetType("LH.Main.Unity.Networking.NetworkPlayerController, LH.Main.Unity.Networking");
+            MethodInfo? configureMethod = controllerType?.GetMethod("ConfigureServerCoreRuntime", BindingFlags.Public | BindingFlags.Static);
+            configureMethod?.Invoke(null, new[] { runtime, playerRegistry });
         }
     }
 }

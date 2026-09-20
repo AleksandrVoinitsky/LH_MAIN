@@ -29,6 +29,19 @@ namespace LH.Main.Unity.Server
         public long SubmittedMatchResults { get; set; }
         public long DuplicateMatchResults { get; set; }
         public long FailedMatchResults { get; set; }
+        public long AcceptedPickupAttempts { get; set; }
+        public long RejectedPickupAttempts { get; set; }
+        public long DuplicateLootPickups { get; set; }
+        public long InventoryFullRejections { get; set; }
+        public long AcceptedFireRequests { get; set; }
+        public long RejectedFireRequests { get; set; }
+        public long HitscanHits { get; set; }
+        public long HitscanMisses { get; set; }
+        public long GrenadesThrown { get; set; }
+        public long GrenadesExploded { get; set; }
+        public long ZoneDamageTicks { get; set; }
+        public long MedItemsUsed { get; set; }
+        public long MedItemsRejected { get; set; }
 
         public GameServerStatus(
             string serverId,
@@ -61,7 +74,20 @@ namespace LH.Main.Unity.Server
                  0,
                  0,
                  0,
-                 0)
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0)
         {
         }
 
@@ -118,6 +144,19 @@ namespace LH.Main.Unity.Server
                 0,
                 0,
                 0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
                 0)
         {
         }
@@ -147,6 +186,85 @@ namespace LH.Main.Unity.Server
             long submittedMatchResults,
             long duplicateMatchResults,
             long failedMatchResults)
+            : this(
+                serverId,
+                state,
+                networkPort,
+                publicHost,
+                publicNetworkPort,
+                startedAtUtc,
+                activeConnections,
+                spawnedPlayers,
+                acceptedAdmissions,
+                rejectedAdmissions,
+                invalidInputCommands,
+                disconnects,
+                serverTickRate,
+                serverTickP95Ms,
+                processMemoryMb,
+                inboundKbps,
+                outboundKbps,
+                acceptedDamageEvents,
+                rejectedDamageEvents,
+                extractedPlayers,
+                deadPlayers,
+                submittedMatchResults,
+                duplicateMatchResults,
+                failedMatchResults,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0)
+        {
+        }
+
+        public GameServerStatus(
+            string serverId,
+            GameServerState state,
+            ushort networkPort,
+            string publicHost,
+            ushort publicNetworkPort,
+            DateTime startedAtUtc,
+            int activeConnections,
+            int spawnedPlayers,
+            long acceptedAdmissions,
+            long rejectedAdmissions,
+            long invalidInputCommands,
+            long disconnects,
+            int serverTickRate,
+            double serverTickP95Ms,
+            long processMemoryMb,
+            double inboundKbps,
+            double outboundKbps,
+            long acceptedDamageEvents,
+            long rejectedDamageEvents,
+            long extractedPlayers,
+            long deadPlayers,
+            long submittedMatchResults,
+            long duplicateMatchResults,
+            long failedMatchResults,
+            long acceptedPickupAttempts,
+            long rejectedPickupAttempts,
+            long duplicateLootPickups,
+            long inventoryFullRejections,
+            long acceptedFireRequests,
+            long rejectedFireRequests,
+            long hitscanHits,
+            long hitscanMisses,
+            long grenadesThrown,
+            long grenadesExploded,
+            long zoneDamageTicks,
+            long medItemsUsed,
+            long medItemsRejected)
         {
             ServerId = serverId;
             State = state;
@@ -172,6 +290,19 @@ namespace LH.Main.Unity.Server
             SubmittedMatchResults = submittedMatchResults;
             DuplicateMatchResults = duplicateMatchResults;
             FailedMatchResults = failedMatchResults;
+            AcceptedPickupAttempts = acceptedPickupAttempts;
+            RejectedPickupAttempts = rejectedPickupAttempts;
+            DuplicateLootPickups = duplicateLootPickups;
+            InventoryFullRejections = inventoryFullRejections;
+            AcceptedFireRequests = acceptedFireRequests;
+            RejectedFireRequests = rejectedFireRequests;
+            HitscanHits = hitscanHits;
+            HitscanMisses = hitscanMisses;
+            GrenadesThrown = grenadesThrown;
+            GrenadesExploded = grenadesExploded;
+            ZoneDamageTicks = zoneDamageTicks;
+            MedItemsUsed = medItemsUsed;
+            MedItemsRejected = medItemsRejected;
         }
 
         public string ToJson()
@@ -200,7 +331,20 @@ namespace LH.Main.Unity.Server
                 + $"\"deadPlayers\":{DeadPlayers},"
                 + $"\"submittedMatchResults\":{SubmittedMatchResults},"
                 + $"\"duplicateMatchResults\":{DuplicateMatchResults},"
-                + $"\"failedMatchResults\":{FailedMatchResults}"
+                + $"\"failedMatchResults\":{FailedMatchResults},"
+                + $"\"acceptedPickupAttempts\":{AcceptedPickupAttempts},"
+                + $"\"rejectedPickupAttempts\":{RejectedPickupAttempts},"
+                + $"\"duplicateLootPickups\":{DuplicateLootPickups},"
+                + $"\"inventoryFullRejections\":{InventoryFullRejections},"
+                + $"\"acceptedFireRequests\":{AcceptedFireRequests},"
+                + $"\"rejectedFireRequests\":{RejectedFireRequests},"
+                + $"\"hitscanHits\":{HitscanHits},"
+                + $"\"hitscanMisses\":{HitscanMisses},"
+                + $"\"grenadesThrown\":{GrenadesThrown},"
+                + $"\"grenadesExploded\":{GrenadesExploded},"
+                + $"\"zoneDamageTicks\":{ZoneDamageTicks},"
+                + $"\"medItemsUsed\":{MedItemsUsed},"
+                + $"\"medItemsRejected\":{MedItemsRejected}"
                 + "}";
         }
 

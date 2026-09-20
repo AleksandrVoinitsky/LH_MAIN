@@ -27,6 +27,19 @@ namespace LH.Main.Unity.Networking
         private static long _submittedMatchResults;
         private static long _duplicateMatchResults;
         private static long _failedMatchResults;
+        private static long _acceptedPickupAttempts;
+        private static long _rejectedPickupAttempts;
+        private static long _duplicateLootPickups;
+        private static long _inventoryFullRejections;
+        private static long _acceptedFireRequests;
+        private static long _rejectedFireRequests;
+        private static long _hitscanHits;
+        private static long _hitscanMisses;
+        private static long _grenadesThrown;
+        private static long _grenadesExploded;
+        private static long _zoneDamageTicks;
+        private static long _medItemsUsed;
+        private static long _medItemsRejected;
 
         public static void RecordAdmissionAccepted()
         {
@@ -84,6 +97,66 @@ namespace LH.Main.Unity.Networking
         public static void RecordMatchResultFailed()
         {
             Interlocked.Increment(ref _failedMatchResults);
+        }
+
+        public static void RecordPickupAccepted()
+        {
+            Interlocked.Increment(ref _acceptedPickupAttempts);
+        }
+
+        public static void RecordPickupRejected(string reason)
+        {
+            Interlocked.Increment(ref _rejectedPickupAttempts);
+        }
+
+        public static void RecordDuplicateLootPickup()
+        {
+            Interlocked.Increment(ref _duplicateLootPickups);
+        }
+
+        public static void RecordInventoryFullRejection()
+        {
+            Interlocked.Increment(ref _rejectedPickupAttempts);
+            Interlocked.Increment(ref _inventoryFullRejections);
+        }
+
+        public static void RecordFireAccepted(bool hit)
+        {
+            Interlocked.Increment(ref _acceptedFireRequests);
+            if (hit)
+                Interlocked.Increment(ref _hitscanHits);
+            else
+                Interlocked.Increment(ref _hitscanMisses);
+        }
+
+        public static void RecordFireRejected(string reason)
+        {
+            Interlocked.Increment(ref _rejectedFireRequests);
+        }
+
+        public static void RecordGrenadeThrown()
+        {
+            Interlocked.Increment(ref _grenadesThrown);
+        }
+
+        public static void RecordGrenadeExploded()
+        {
+            Interlocked.Increment(ref _grenadesExploded);
+        }
+
+        public static void RecordZoneDamageTick()
+        {
+            Interlocked.Increment(ref _zoneDamageTicks);
+        }
+
+        public static void RecordMedItemUsed()
+        {
+            Interlocked.Increment(ref _medItemsUsed);
+        }
+
+        public static void RecordMedItemRejected(string reason)
+        {
+            Interlocked.Increment(ref _medItemsRejected);
         }
 
         public static void SetConnectionCounts(int activeConnections, int spawnedPlayers)
@@ -158,7 +231,20 @@ namespace LH.Main.Unity.Networking
                 Interlocked.Read(ref _deadPlayers),
                 Interlocked.Read(ref _submittedMatchResults),
                 Interlocked.Read(ref _duplicateMatchResults),
-                Interlocked.Read(ref _failedMatchResults));
+                Interlocked.Read(ref _failedMatchResults),
+                Interlocked.Read(ref _acceptedPickupAttempts),
+                Interlocked.Read(ref _rejectedPickupAttempts),
+                Interlocked.Read(ref _duplicateLootPickups),
+                Interlocked.Read(ref _inventoryFullRejections),
+                Interlocked.Read(ref _acceptedFireRequests),
+                Interlocked.Read(ref _rejectedFireRequests),
+                Interlocked.Read(ref _hitscanHits),
+                Interlocked.Read(ref _hitscanMisses),
+                Interlocked.Read(ref _grenadesThrown),
+                Interlocked.Read(ref _grenadesExploded),
+                Interlocked.Read(ref _zoneDamageTicks),
+                Interlocked.Read(ref _medItemsUsed),
+                Interlocked.Read(ref _medItemsRejected));
         }
 
         private static double SanitizeMetricDouble(double value)
@@ -201,6 +287,19 @@ namespace LH.Main.Unity.Networking
             public long SubmittedMatchResults { get; }
             public long DuplicateMatchResults { get; }
             public long FailedMatchResults { get; }
+            public long AcceptedPickupAttempts { get; }
+            public long RejectedPickupAttempts { get; }
+            public long DuplicateLootPickups { get; }
+            public long InventoryFullRejections { get; }
+            public long AcceptedFireRequests { get; }
+            public long RejectedFireRequests { get; }
+            public long HitscanHits { get; }
+            public long HitscanMisses { get; }
+            public long GrenadesThrown { get; }
+            public long GrenadesExploded { get; }
+            public long ZoneDamageTicks { get; }
+            public long MedItemsUsed { get; }
+            public long MedItemsRejected { get; }
 
             public Snapshot(
                 int activeConnections,
@@ -220,7 +319,20 @@ namespace LH.Main.Unity.Networking
                 long deadPlayers,
                 long submittedMatchResults,
                 long duplicateMatchResults,
-                long failedMatchResults)
+                long failedMatchResults,
+                long acceptedPickupAttempts,
+                long rejectedPickupAttempts,
+                long duplicateLootPickups,
+                long inventoryFullRejections,
+                long acceptedFireRequests,
+                long rejectedFireRequests,
+                long hitscanHits,
+                long hitscanMisses,
+                long grenadesThrown,
+                long grenadesExploded,
+                long zoneDamageTicks,
+                long medItemsUsed,
+                long medItemsRejected)
             {
                 ActiveConnections = activeConnections;
                 SpawnedPlayers = spawnedPlayers;
@@ -240,6 +352,19 @@ namespace LH.Main.Unity.Networking
                 SubmittedMatchResults = submittedMatchResults;
                 DuplicateMatchResults = duplicateMatchResults;
                 FailedMatchResults = failedMatchResults;
+                AcceptedPickupAttempts = acceptedPickupAttempts;
+                RejectedPickupAttempts = rejectedPickupAttempts;
+                DuplicateLootPickups = duplicateLootPickups;
+                InventoryFullRejections = inventoryFullRejections;
+                AcceptedFireRequests = acceptedFireRequests;
+                RejectedFireRequests = rejectedFireRequests;
+                HitscanHits = hitscanHits;
+                HitscanMisses = hitscanMisses;
+                GrenadesThrown = grenadesThrown;
+                GrenadesExploded = grenadesExploded;
+                ZoneDamageTicks = zoneDamageTicks;
+                MedItemsUsed = medItemsUsed;
+                MedItemsRejected = medItemsRejected;
             }
         }
     }

@@ -59,7 +59,15 @@ public sealed class GameServerStatusTests
             DeadPlayers = 4,
             SubmittedMatchResults = 1,
             DuplicateMatchResults = 1,
-            FailedMatchResults = 0
+            FailedMatchResults = 0,
+            AcceptedPickupAttempts = 5,
+            RejectedPickupAttempts = 6,
+            DuplicateLootPickups = 7,
+            AcceptedFireRequests = 8,
+            RejectedFireRequests = 9,
+            GrenadesExploded = 10,
+            ZoneDamageTicks = 11,
+            MedItemsUsed = 12
         };
 
         string json = status.ToJson();
@@ -71,6 +79,49 @@ public sealed class GameServerStatusTests
         Assert.That(json, Does.Contain("\"submittedMatchResults\":1"));
         Assert.That(json, Does.Contain("\"duplicateMatchResults\":1"));
         Assert.That(json, Does.Contain("\"failedMatchResults\":0"));
+        Assert.That(json, Does.Contain("\"acceptedPickupAttempts\":5"));
+        Assert.That(json, Does.Contain("\"rejectedPickupAttempts\":6"));
+        Assert.That(json, Does.Contain("\"duplicateLootPickups\":7"));
+        Assert.That(json, Does.Contain("\"acceptedFireRequests\":8"));
+        Assert.That(json, Does.Contain("\"rejectedFireRequests\":9"));
+        Assert.That(json, Does.Contain("\"grenadesExploded\":10"));
+        Assert.That(json, Does.Contain("\"zoneDamageTicks\":11"));
+        Assert.That(json, Does.Contain("\"medItemsUsed\":12"));
+    }
+
+    [Test]
+    public void SnapshotIncludesRecordedPhase06Metrics()
+    {
+        GameServerMetrics.Snapshot before = GameServerMetrics.GetSnapshot();
+
+        GameServerMetrics.RecordPickupAccepted();
+        GameServerMetrics.RecordPickupRejected("loot_not_found");
+        GameServerMetrics.RecordDuplicateLootPickup();
+        GameServerMetrics.RecordInventoryFullRejection();
+        GameServerMetrics.RecordFireAccepted(hit: true);
+        GameServerMetrics.RecordFireAccepted(hit: false);
+        GameServerMetrics.RecordFireRejected("fire_rejected");
+        GameServerMetrics.RecordGrenadeThrown();
+        GameServerMetrics.RecordGrenadeExploded();
+        GameServerMetrics.RecordZoneDamageTick();
+        GameServerMetrics.RecordMedItemUsed();
+        GameServerMetrics.RecordMedItemRejected("item_not_owned");
+
+        GameServerMetrics.Snapshot after = GameServerMetrics.GetSnapshot();
+
+        Assert.That(after.AcceptedPickupAttempts, Is.EqualTo(before.AcceptedPickupAttempts + 1));
+        Assert.That(after.RejectedPickupAttempts, Is.EqualTo(before.RejectedPickupAttempts + 2));
+        Assert.That(after.DuplicateLootPickups, Is.EqualTo(before.DuplicateLootPickups + 1));
+        Assert.That(after.InventoryFullRejections, Is.EqualTo(before.InventoryFullRejections + 1));
+        Assert.That(after.AcceptedFireRequests, Is.EqualTo(before.AcceptedFireRequests + 2));
+        Assert.That(after.RejectedFireRequests, Is.EqualTo(before.RejectedFireRequests + 1));
+        Assert.That(after.HitscanHits, Is.EqualTo(before.HitscanHits + 1));
+        Assert.That(after.HitscanMisses, Is.EqualTo(before.HitscanMisses + 1));
+        Assert.That(after.GrenadesThrown, Is.EqualTo(before.GrenadesThrown + 1));
+        Assert.That(after.GrenadesExploded, Is.EqualTo(before.GrenadesExploded + 1));
+        Assert.That(after.ZoneDamageTicks, Is.EqualTo(before.ZoneDamageTicks + 1));
+        Assert.That(after.MedItemsUsed, Is.EqualTo(before.MedItemsUsed + 1));
+        Assert.That(after.MedItemsRejected, Is.EqualTo(before.MedItemsRejected + 1));
     }
 
     [Test]
