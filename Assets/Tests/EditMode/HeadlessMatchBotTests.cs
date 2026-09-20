@@ -24,6 +24,16 @@ public sealed class HeadlessMatchBotTests
         Assert.That(HeadlessMatchBot.GetPhase05OutcomeForClientIndex(3), Is.EqualTo(BotPhase05Outcome.Extracted));
     }
 
+    [Test]
+    public void GetPhase06ActionForElapsedSecondsFollowsDeterministicActionWindows()
+    {
+        Assert.That(HeadlessMatchBot.GetPhase06ActionForElapsedSeconds(1d), Is.EqualTo(BotPhase06Action.PickupLoot));
+        Assert.That(HeadlessMatchBot.GetPhase06ActionForElapsedSeconds(3d), Is.EqualTo(BotPhase06Action.FireWeapon));
+        Assert.That(HeadlessMatchBot.GetPhase06ActionForElapsedSeconds(5d), Is.EqualTo(BotPhase06Action.ReloadWeapon));
+        Assert.That(HeadlessMatchBot.GetPhase06ActionForElapsedSeconds(7d), Is.EqualTo(BotPhase06Action.ThrowGrenade));
+        Assert.That(HeadlessMatchBot.GetPhase06ActionForElapsedSeconds(9d), Is.EqualTo(BotPhase06Action.UseMedItem));
+    }
+
     private static void AssertMove(double elapsedSeconds, float expectedX, float expectedY)
     {
         BotMove move = HeadlessMatchBot.GetMoveForElapsedSeconds(elapsedSeconds);

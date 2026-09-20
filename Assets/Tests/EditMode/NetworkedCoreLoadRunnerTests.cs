@@ -108,6 +108,24 @@ public sealed class NetworkedCoreLoadRunnerTests
     }
 
     [Test]
+    public void Phase06CoreMatchOptionSwitchesDefaultReportPath()
+    {
+        string previousReportPath = Environment.GetEnvironmentVariable("LH_LOAD_REPORT_PATH");
+        Environment.SetEnvironmentVariable("LH_LOAD_REPORT_PATH", null);
+        try
+        {
+            object options = ParseOptions("--phase06CoreMatch", "true");
+
+            Assert.That(ReadProperty<bool>(options, "Phase06CoreMatch"), Is.True);
+            Assert.That(ReadProperty<string>(options, "ReportPath"), Is.EqualTo(".superpowers/sdd/2026-09-21-phase-06-core-match/task-9-final-load-64.json"));
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("LH_LOAD_REPORT_PATH", previousReportPath);
+        }
+    }
+
+    [Test]
     public void ApplySubmissionOutcomeRequiresDuplicateWithNoNewRewardTransactions()
     {
         var report = new LoadScenarioReport(DateTime.UtcNow, 30, 3);
@@ -173,6 +191,66 @@ public sealed class NetworkedCoreLoadRunnerTests
         Assert.That(success, Is.False);
         Assert.That(report.FailedClients, Is.EqualTo(1));
         Assert.That(report.DisconnectReasons, Does.Contain("phase05_result_verification_failed"));
+    }
+
+    [Test]
+    public void Phase06RunSuccessRequiresCompletedClientsAndCoverageWithoutDuplicateLootSuccess()
+    {
+        var report = new LoadScenarioReport(DateTime.UtcNow, 60, 64)
+        {
+            CompletedClients = 64,
+            FailedClients = 0,
+            LootPickups = 64,
+            DuplicateLootPrevented = 1,
+            FireRequests = 64,
+            GrenadesExploded = 1,
+            ZoneDamageTicks = 1,
+            MedItemsUsed = 1,
+            DuplicateLootSucceeded = false
+        };
+        MethodInfo method = GetPrivateStaticMethod(
+            "ShouldExitSuccessfully",
+            typeof(LoadScenarioReport),
+            typeof(int),
+            typeof(bool),
+            typeof(bool));
+
+        Assert.That(method, Is.Not.Null);
+
+        bool success = (bool)method.Invoke(null, new object[] { report, 64, false, true });
+
+        Assert.That(success, Is.True);
+    }
+
+    [Test]
+    public void Phase06RunFailsWhenDuplicateLootSucceededOrCoverageIsMissing()
+    {
+        var report = new LoadScenarioReport(DateTime.UtcNow, 60, 64)
+        {
+            CompletedClients = 64,
+            FailedClients = 0,
+            LootPickups = 64,
+            DuplicateLootPrevented = 1,
+            FireRequests = 64,
+            GrenadesExploded = 1,
+            ZoneDamageTicks = 0,
+            MedItemsUsed = 1,
+            DuplicateLootSucceeded = true
+        };
+        MethodInfo method = GetPrivateStaticMethod(
+            "ShouldExitSuccessfully",
+            typeof(LoadScenarioReport),
+            typeof(int),
+            typeof(bool),
+            typeof(bool));
+
+        Assert.That(method, Is.Not.Null);
+
+        bool success = (bool)method.Invoke(null, new object[] { report, 64, false, true });
+
+        Assert.That(success, Is.False);
+        Assert.That(report.FailedClients, Is.EqualTo(1));
+        Assert.That(report.DisconnectReasons, Does.Contain("phase06_core_match_verification_failed"));
     }
 
     [Test]

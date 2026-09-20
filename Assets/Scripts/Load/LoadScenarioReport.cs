@@ -20,6 +20,15 @@ namespace LH.Main.Unity.Load
         public bool ResultSubmitted { get; set; }
         public bool DuplicateResultAccepted { get; set; }
         public int RewardTransactions { get; set; }
+        public int LootPickups { get; set; }
+        public int DuplicateLootPrevented { get; set; }
+        public bool DuplicateLootSucceeded { get; set; }
+        public int FireRequests { get; set; }
+        public int ReloadRequests { get; set; }
+        public int GrenadesThrown { get; set; }
+        public int GrenadesExploded { get; set; }
+        public int ZoneDamageTicks { get; set; }
+        public int MedItemsUsed { get; set; }
         public List<string> ServerStatusSnapshots { get; } = new List<string>();
         public List<string> DisconnectReasons { get; } = new List<string>();
         public List<string> MachineNotes { get; } = new List<string>();
@@ -70,6 +79,15 @@ namespace LH.Main.Unity.Load
                 + $"\"resultSubmitted\":{JsonBool(ResultSubmitted)},"
                 + $"\"duplicateResultAccepted\":{JsonBool(DuplicateResultAccepted)},"
                 + $"\"rewardTransactions\":{RewardTransactions},"
+                + $"\"lootPickups\":{LootPickups},"
+                + $"\"duplicateLootPrevented\":{DuplicateLootPrevented},"
+                + $"\"duplicateLootSucceeded\":{JsonBool(DuplicateLootSucceeded)},"
+                + $"\"fireRequests\":{FireRequests},"
+                + $"\"reloadRequests\":{ReloadRequests},"
+                + $"\"grenadesThrown\":{GrenadesThrown},"
+                + $"\"grenadesExploded\":{GrenadesExploded},"
+                + $"\"zoneDamageTicks\":{ZoneDamageTicks},"
+                + $"\"medItemsUsed\":{MedItemsUsed},"
                 + $"\"serverStatusSnapshots\":{RawJsonArray(ServerStatusSnapshots)},"
                 + $"\"disconnectReasons\":{StringArray(DisconnectReasons)},"
                 + $"\"machineNotes\":{StringArray(MachineNotes)},"

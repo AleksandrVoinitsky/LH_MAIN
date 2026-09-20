@@ -57,4 +57,27 @@ public sealed class LoadScenarioReportTests
         Assert.That(json, Does.Contain("\"duplicateResultAccepted\":true"));
         Assert.That(json, Does.Contain("\"rewardTransactions\":3"));
     }
+
+    [Test]
+    public void ToJsonIncludesPhase06Counters()
+    {
+        var report = new LoadScenarioReport(DateTime.UtcNow, 60, 64)
+        {
+            LootPickups = 64,
+            DuplicateLootPrevented = 12,
+            FireRequests = 64,
+            GrenadesExploded = 64,
+            ZoneDamageTicks = 10,
+            MedItemsUsed = 32
+        };
+
+        string json = report.ToJson();
+
+        Assert.That(json, Does.Contain("\"lootPickups\":64"));
+        Assert.That(json, Does.Contain("\"duplicateLootPrevented\":12"));
+        Assert.That(json, Does.Contain("\"fireRequests\":64"));
+        Assert.That(json, Does.Contain("\"grenadesExploded\":64"));
+        Assert.That(json, Does.Contain("\"zoneDamageTicks\":10"));
+        Assert.That(json, Does.Contain("\"medItemsUsed\":32"));
+    }
 }

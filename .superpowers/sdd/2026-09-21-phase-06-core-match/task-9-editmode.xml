@@ -1,0 +1,943 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="139" result="Passed" total="139" passed="139" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-20 22:39:16Z" end-time="2026-09-20 22:39:19Z" duration="2,1999896">
+  <test-suite type="TestSuite" id="1000" name="My project" fullname="My project" runstate="Runnable" testcasecount="139" result="Passed" start-time="2026-09-20 22:39:16Z" end-time="2026-09-20 22:39:19Z" duration="2.199990" total="139" passed="139" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1169" name="LH.Main.Unity.EditMode.Tests.dll" fullname="D:/LH_MAIN/.worktrees/phase-06-core-match/Library/ScriptAssemblies/LH.Main.Unity.EditMode.Tests.dll" runstate="Runnable" testcasecount="139" result="Passed" start-time="2026-09-20 22:39:16Z" end-time="2026-09-20 22:39:19Z" duration="2.186136" total="139" passed="139" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="9908" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestFixture" id="1001" name="CoreMatchRuntimeTests" fullname="CoreMatchRuntimeTests" classname="CoreMatchRuntimeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-20 22:39:16Z" end-time="2026-09-20 22:39:17Z" duration="0.080432" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1003" name="TickAppliesZoneDamageToPlayersOutsideConfiguredSafeVolume" fullname="CoreMatchRuntimeTests.TickAppliesZoneDamageToPlayersOutsideConfiguredSafeVolume" methodname="TickAppliesZoneDamageToPlayersOutsideConfiguredSafeVolume" classname="CoreMatchRuntimeTests" runstate="Runnable" seed="23108863" result="Passed" start-time="2026-09-20 22:39:16Z" end-time="2026-09-20 22:39:16Z" duration="0.046867" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1002" name="TryFireAppliesHitscanDamageToRaycastTargetAndReportsHit" fullname="CoreMatchRuntimeTests.TryFireAppliesHitscanDamageToRaycastTargetAndReportsHit" methodname="TryFireAppliesHitscanDamageToRaycastTargetAndReportsHit" classname="CoreMatchRuntimeTests" runstate="Runnable" seed="1529107044" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.009440" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1004" name="EffectRuntimeTests" fullname="EffectRuntimeTests" classname="EffectRuntimeTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.014404" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1012" name="TickAppliesDueDamageOverTimeTicksUntilEffectExpires" fullname="EffectRuntimeTests.TickAppliesDueDamageOverTimeTicksUntilEffectExpires" methodname="TickAppliesDueDamageOverTimeTicksUntilEffectExpires" classname="EffectRuntimeTests" runstate="Runnable" seed="1950161336" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.005073" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1005" name="TryUseMedItemConsumesOneItemAndAppliesHealing" fullname="EffectRuntimeTests.TryUseMedItemConsumesOneItemAndAppliesHealing" methodname="TryUseMedItemConsumesOneItemAndAppliesHealing" classname="EffectRuntimeTests" runstate="Runnable" seed="1826195178" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.003443" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1007" name="TryUseMedItemRejectsCooldownBeforeConsumingInventory" fullname="EffectRuntimeTests.TryUseMedItemRejectsCooldownBeforeConsumingInventory" methodname="TryUseMedItemRejectsCooldownBeforeConsumingInventory" classname="EffectRuntimeTests" runstate="Runnable" seed="1607668762" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000533" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1009" name="TryUseMedItemRejectsNonMedDefinitionBeforeConsumingInventory" fullname="EffectRuntimeTests.TryUseMedItemRejectsNonMedDefinitionBeforeConsumingInventory" methodname="TryUseMedItemRejectsNonMedDefinitionBeforeConsumingInventory" classname="EffectRuntimeTests" runstate="Runnable" seed="1365483157" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000427" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1010" name="TryUseMedItemRejectsUnusableMedDefinitionBeforeConsumingInventory" fullname="EffectRuntimeTests.TryUseMedItemRejectsUnusableMedDefinitionBeforeConsumingInventory" methodname="TryUseMedItemRejectsUnusableMedDefinitionBeforeConsumingInventory" classname="EffectRuntimeTests" runstate="Runnable" seed="106065530" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000428" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1008" name="TryUseMedItemRestoresInventoryWhenHealingIsRejected" fullname="EffectRuntimeTests.TryUseMedItemRestoresInventoryWhenHealingIsRejected" methodname="TryUseMedItemRestoresInventoryWhenHealingIsRejected" classname="EffectRuntimeTests" runstate="Runnable" seed="1517690480" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000418" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1011" name="TryUseMedItemStringApiRejectsInvalidOrUnknownItemsBeforeConsumingInventory" fullname="EffectRuntimeTests.TryUseMedItemStringApiRejectsInvalidOrUnknownItemsBeforeConsumingInventory" methodname="TryUseMedItemStringApiRejectsInvalidOrUnknownItemsBeforeConsumingInventory" classname="EffectRuntimeTests" runstate="Runnable" seed="94756281" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.001119" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1006" name="TryUseMedItemStringApiUsesServerKnownMedDefinition" fullname="EffectRuntimeTests.TryUseMedItemStringApiUsesServerKnownMedDefinition" methodname="TryUseMedItemStringApiUsesServerKnownMedDefinition" classname="EffectRuntimeTests" runstate="Runnable" seed="61887960" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000488" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1013" name="ExtractionProgressTests" fullname="ExtractionProgressTests" classname="ExtractionProgressTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.001527" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1014" name="UpdateCompletesOnlyAfterContinuousHoldTime" fullname="ExtractionProgressTests.UpdateCompletesOnlyAfterContinuousHoldTime" methodname="UpdateCompletesOnlyAfterContinuousHoldTime" classname="ExtractionProgressTests" runstate="Runnable" seed="1244549040" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000758" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1146" name="GameServerAdmissionTransportTests" fullname="GameServerAdmissionTransportTests" classname="GameServerAdmissionTransportTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000874" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1147" name="PublicAdmissionTransportDtoDoesNotImplementFishNetBroadcast" fullname="GameServerAdmissionTransportTests.PublicAdmissionTransportDtoDoesNotImplementFishNetBroadcast" methodname="PublicAdmissionTransportDtoDoesNotImplementFishNetBroadcast" classname="GameServerAdmissionTransportTests" runstate="Runnable" seed="1005711250" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000334" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1141" name="GameServerAuthenticatorTests" fullname="GameServerAuthenticatorTests" classname="GameServerAuthenticatorTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.014599" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1143" name="TryAuthenticateAsyncRejectsMalformedPayload" fullname="GameServerAuthenticatorTests.TryAuthenticateAsyncRejectsMalformedPayload" methodname="TryAuthenticateAsyncRejectsMalformedPayload" classname="GameServerAuthenticatorTests" runstate="Runnable" seed="799099248" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.007904" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1142" name="TryAuthenticateAsyncRejectsWrongLocalServerIdBeforeValidation" fullname="GameServerAuthenticatorTests.TryAuthenticateAsyncRejectsWrongLocalServerIdBeforeValidation" methodname="TryAuthenticateAsyncRejectsWrongLocalServerIdBeforeValidation" classname="GameServerAuthenticatorTests" runstate="Runnable" seed="1052731698" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.002018" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1145" name="TryAuthenticateAsyncReturnsAcceptedMatchAndPlayerIds" fullname="GameServerAuthenticatorTests.TryAuthenticateAsyncReturnsAcceptedMatchAndPlayerIds" methodname="TryAuthenticateAsyncReturnsAcceptedMatchAndPlayerIds" classname="GameServerAuthenticatorTests" runstate="Runnable" seed="1320295849" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.001875" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1144" name="TryAuthenticateAsyncReturnsValidatorRejection" fullname="GameServerAuthenticatorTests.TryAuthenticateAsyncReturnsValidatorRejection" methodname="TryAuthenticateAsyncReturnsValidatorRejection" classname="GameServerAuthenticatorTests" runstate="Runnable" seed="1681405850" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.001368" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1148" name="GameServerBootstrapAdmissionReflectionTests" fullname="GameServerBootstrapAdmissionReflectionTests" classname="GameServerBootstrapAdmissionReflectionTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.034274" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1150" name="ApplyTechnicalDamageForLoadRunnerRecordsMetricsThroughRegistry" fullname="GameServerBootstrapAdmissionReflectionTests.ApplyTechnicalDamageForLoadRunnerRecordsMetricsThroughRegistry" methodname="ApplyTechnicalDamageForLoadRunnerRecordsMetricsThroughRegistry" classname="GameServerBootstrapAdmissionReflectionTests" runstate="Runnable" seed="1781536432" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.009066" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1152" name="ConfigureAdmissionAuthenticatorCatchesConfigureInvocationFailure" fullname="GameServerBootstrapAdmissionReflectionTests.ConfigureAdmissionAuthenticatorCatchesConfigureInvocationFailure" methodname="ConfigureAdmissionAuthenticatorCatchesConfigureInvocationFailure" classname="GameServerBootstrapAdmissionReflectionTests" runstate="Runnable" seed="985370433" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.003026" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1151" name="ConfigureAdmissionAuthenticatorFailsWhenConfigureMethodIsMissing" fullname="GameServerBootstrapAdmissionReflectionTests.ConfigureAdmissionAuthenticatorFailsWhenConfigureMethodIsMissing" methodname="ConfigureAdmissionAuthenticatorFailsWhenConfigureMethodIsMissing" classname="GameServerBootstrapAdmissionReflectionTests" runstate="Runnable" seed="467512441" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.001653" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1149" name="FinalizeMatchForLoadRunnerSubmitsMixedRuntimeSnapshotWithSupportedRewards" fullname="GameServerBootstrapAdmissionReflectionTests.FinalizeMatchForLoadRunnerSubmitsMixedRuntimeSnapshotWithSupportedRewards" methodname="FinalizeMatchForLoadRunnerSubmitsMixedRuntimeSnapshotWithSupportedRewards" classname="GameServerBootstrapAdmissionReflectionTests" runstate="Runnable" seed="1019935738" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.019158" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1015" name="GameServerConfigTests" fullname="GameServerConfigTests" classname="GameServerConfigTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.002330" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1019" name="ValidateAcceptsCompleteBackendAdmissionSettings" fullname="GameServerConfigTests.ValidateAcceptsCompleteBackendAdmissionSettings" methodname="ValidateAcceptsCompleteBackendAdmissionSettings" classname="GameServerConfigTests" runstate="Runnable" seed="1525218822" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000599" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1016" name="ValidateRequiresBackendAdmissionSettings" fullname="GameServerConfigTests.ValidateRequiresBackendAdmissionSettings" methodname="ValidateRequiresBackendAdmissionSettings" classname="GameServerConfigTests" runstate="Runnable" seed="1411756507" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000217" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1018" name="ValidateRequiresPositiveTicketValidationTimeout" fullname="GameServerConfigTests.ValidateRequiresPositiveTicketValidationTimeout" methodname="ValidateRequiresPositiveTicketValidationTimeout" classname="GameServerConfigTests" runstate="Runnable" seed="264406315" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000199" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1017" name="ValidateRequiresSharedKey" fullname="GameServerConfigTests.ValidateRequiresSharedKey" methodname="ValidateRequiresSharedKey" classname="GameServerConfigTests" runstate="Runnable" seed="1660765428" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000206" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1020" name="GameServerFishNetAuthenticatorAssetTests" fullname="GameServerFishNetAuthenticatorAssetTests" classname="GameServerFishNetAuthenticatorAssetTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.002023" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1021" name="FishNetAuthenticatorHasDedicatedMonoScriptAsset" fullname="GameServerFishNetAuthenticatorAssetTests.FishNetAuthenticatorHasDedicatedMonoScriptAsset" methodname="FishNetAuthenticatorHasDedicatedMonoScriptAsset" classname="GameServerFishNetAuthenticatorAssetTests" runstate="Runnable" seed="1267729732" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.001408" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1022" name="GameServerStatusTests" fullname="GameServerStatusTests" classname="GameServerStatusTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.014891" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1026" name="RegistryAcceptedConnectionsDoNotCountAsSpawnedPlayers" fullname="GameServerStatusTests.RegistryAcceptedConnectionsDoNotCountAsSpawnedPlayers" methodname="RegistryAcceptedConnectionsDoNotCountAsSpawnedPlayers" classname="GameServerStatusTests" runstate="Runnable" seed="1645344964" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000444" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1028" name="RegistryCountsSpawnedPlayerOnlyAfterExplicitSpawnSuccess" fullname="GameServerStatusTests.RegistryCountsSpawnedPlayerOnlyAfterExplicitSpawnSuccess" methodname="RegistryCountsSpawnedPlayerOnlyAfterExplicitSpawnSuccess" classname="GameServerStatusTests" runstate="Runnable" seed="339068657" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.001111" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1027" name="RegistryDoesNotCountNoOpSpawnAsSpawnedPlayer" fullname="GameServerStatusTests.RegistryDoesNotCountNoOpSpawnAsSpawnedPlayer" methodname="RegistryDoesNotCountNoOpSpawnAsSpawnedPlayer" classname="GameServerStatusTests" runstate="Runnable" seed="434057828" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000296" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1025" name="SnapshotIncludesRecordedPhase06Metrics" fullname="GameServerStatusTests.SnapshotIncludesRecordedPhase06Metrics" methodname="SnapshotIncludesRecordedPhase06Metrics" classname="GameServerStatusTests" runstate="Runnable" seed="1884517575" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000880" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1029" name="SnapshotIncludesRecordedTrafficKbps" fullname="GameServerStatusTests.SnapshotIncludesRecordedTrafficKbps" methodname="SnapshotIncludesRecordedTrafficKbps" classname="GameServerStatusTests" runstate="Runnable" seed="966235967" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.001182" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1024" name="ToJsonIncludesGameplayLoopMetrics" fullname="GameServerStatusTests.ToJsonIncludesGameplayLoopMetrics" methodname="ToJsonIncludesGameplayLoopMetrics" classname="GameServerStatusTests" runstate="Runnable" seed="658904714" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.007860" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1023" name="ToJsonIncludesHealthFieldsAndMetrics" fullname="GameServerStatusTests.ToJsonIncludesHealthFieldsAndMetrics" methodname="ToJsonIncludesHealthFieldsAndMetrics" classname="GameServerStatusTests" runstate="Runnable" seed="1962044974" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000935" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1030" name="GrenadeRuntimeTests" fullname="GrenadeRuntimeTests" classname="GrenadeRuntimeTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.017526" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1033" name="ConstructorRejectsInvalidSpawnPositionAndThrowDirection" fullname="GrenadeRuntimeTests.ConstructorRejectsInvalidSpawnPositionAndThrowDirection" methodname="ConstructorRejectsInvalidSpawnPositionAndThrowDirection" classname="GrenadeRuntimeTests" runstate="Runnable" seed="1157467526" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.004718" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1032" name="TickAppliesDistanceFalloffOnlyInsideRadius" fullname="GrenadeRuntimeTests.TickAppliesDistanceFalloffOnlyInsideRadius" methodname="TickAppliesDistanceFalloffOnlyInsideRadius" classname="GrenadeRuntimeTests" runstate="Runnable" seed="197914400" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.004426" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1035" name="TickDoesNotMoveAuthoritativePositionAfterExplosion" fullname="GrenadeRuntimeTests.TickDoesNotMoveAuthoritativePositionAfterExplosion" methodname="TickDoesNotMoveAuthoritativePositionAfterExplosion" classname="GrenadeRuntimeTests" runstate="Runnable" seed="1608396132" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.001104" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1031" name="TickExplodesOnceWhenFuseExpires" fullname="GrenadeRuntimeTests.TickExplodesOnceWhenFuseExpires" methodname="TickExplodesOnceWhenFuseExpires" classname="GrenadeRuntimeTests" runstate="Runnable" seed="2026879907" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.001465" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1034" name="TickMovesAuthoritativePositionAlongThrowDirectionBeforeFuse" fullname="GrenadeRuntimeTests.TickMovesAuthoritativePositionAlongThrowDirectionBeforeFuse" methodname="TickMovesAuthoritativePositionAlongThrowDirectionBeforeFuse" classname="GrenadeRuntimeTests" runstate="Runnable" seed="1616168786" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.002835" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1036" name="TickStopsAuthoritativePositionAtPhysicsCollision" fullname="GrenadeRuntimeTests.TickStopsAuthoritativePositionAtPhysicsCollision" methodname="TickStopsAuthoritativePositionAtPhysicsCollision" classname="GrenadeRuntimeTests" runstate="Runnable" seed="1552361361" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.001231" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1037" name="HeadlessMatchBotTests" fullname="HeadlessMatchBotTests" classname="HeadlessMatchBotTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.003104" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1038" name="GetMoveForElapsedSecondsFollowsDeterministicRoute" fullname="HeadlessMatchBotTests.GetMoveForElapsedSecondsFollowsDeterministicRoute" methodname="GetMoveForElapsedSecondsFollowsDeterministicRoute" classname="HeadlessMatchBotTests" runstate="Runnable" seed="749562838" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000696" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1039" name="GetPhase05OutcomeForClientIndexSplitsClientsIntoThreeDeterministicPaths" fullname="HeadlessMatchBotTests.GetPhase05OutcomeForClientIndexSplitsClientsIntoThreeDeterministicPaths" methodname="GetPhase05OutcomeForClientIndexSplitsClientsIntoThreeDeterministicPaths" classname="HeadlessMatchBotTests" runstate="Runnable" seed="894270288" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000525" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1040" name="GetPhase06ActionForElapsedSecondsFollowsDeterministicActionWindows" fullname="HeadlessMatchBotTests.GetPhase06ActionForElapsedSecondsFollowsDeterministicActionWindows" methodname="GetPhase06ActionForElapsedSecondsFollowsDeterministicActionWindows" classname="HeadlessMatchBotTests" runstate="Runnable" seed="2122659504" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000697" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1041" name="LoadScenarioReportTests" fullname="LoadScenarioReportTests" classname="LoadScenarioReportTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.004097" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1043" name="ToJsonIncludesGameplayLoopOutcomeFields" fullname="LoadScenarioReportTests.ToJsonIncludesGameplayLoopOutcomeFields" methodname="ToJsonIncludesGameplayLoopOutcomeFields" classname="LoadScenarioReportTests" runstate="Runnable" seed="1831868053" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.001849" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1044" name="ToJsonIncludesPhase06Counters" fullname="LoadScenarioReportTests.ToJsonIncludesPhase06Counters" methodname="ToJsonIncludesPhase06Counters" classname="LoadScenarioReportTests" runstate="Runnable" seed="1944707325" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000397" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1042" name="ToJsonIncludesRequiredLoadFieldsAndEscapesNotes" fullname="LoadScenarioReportTests.ToJsonIncludesRequiredLoadFieldsAndEscapesNotes" methodname="ToJsonIncludesRequiredLoadFieldsAndEscapesNotes" classname="LoadScenarioReportTests" runstate="Runnable" seed="1909341138" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000902" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1045" name="LootContainerTests" fullname="LootContainerTests" classname="LootContainerTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.012827" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1049" name="LootContainerCanExistAsSceneComponent" fullname="LootContainerTests.LootContainerCanExistAsSceneComponent" methodname="LootContainerCanExistAsSceneComponent" classname="LootContainerTests" runstate="Runnable" seed="1466536285" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.001190" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1046" name="PickupConsumesLootOnce" fullname="LootContainerTests.PickupConsumesLootOnce" methodname="PickupConsumesLootOnce" classname="LootContainerTests" runstate="Runnable" seed="1475414698" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.006169" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1048" name="PickupRejectsMismatchedItemDefinitionWithoutMutation" fullname="LootContainerTests.PickupRejectsMismatchedItemDefinitionWithoutMutation" methodname="PickupRejectsMismatchedItemDefinitionWithoutMutation" classname="LootContainerTests" runstate="Runnable" seed="1892896890" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.003078" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1047" name="PickupRejectsOutOfRangePlayer" fullname="LootContainerTests.PickupRejectsOutOfRangePlayer" methodname="PickupRejectsOutOfRangePlayer" classname="LootContainerTests" runstate="Runnable" seed="1478316272" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000847" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1050" name="MatchAdmissionPayloadTests" fullname="MatchAdmissionPayloadTests" classname="MatchAdmissionPayloadTests" runstate="Runnable" testcasecount="10" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.006066" total="10" passed="10" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1060" name="SourceDoesNotReferenceUnityEngineOrFishNet" fullname="MatchAdmissionPayloadTests.SourceDoesNotReferenceUnityEngineOrFishNet" methodname="SourceDoesNotReferenceUnityEngineOrFishNet" classname="MatchAdmissionPayloadTests" runstate="Runnable" seed="1161488185" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000881" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1059" name="ToJsonWritesAdmissionPayloadFields" fullname="MatchAdmissionPayloadTests.ToJsonWritesAdmissionPayloadFields" methodname="ToJsonWritesAdmissionPayloadFields" classname="MatchAdmissionPayloadTests" runstate="Runnable" seed="1112432570" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000330" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1051" name="TryParseAcceptsValidPayload" fullname="MatchAdmissionPayloadTests.TryParseAcceptsValidPayload" methodname="TryParseAcceptsValidPayload" classname="MatchAdmissionPayloadTests" runstate="Runnable" seed="116572420" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000524" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1055" name="TryParseRejectsEmptyTicket" fullname="MatchAdmissionPayloadTests.TryParseRejectsEmptyTicket" methodname="TryParseRejectsEmptyTicket" classname="MatchAdmissionPayloadTests" runstate="Runnable" seed="173337583" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000209" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1052" name="TryParseRejectsMalformedJson" fullname="MatchAdmissionPayloadTests.TryParseRejectsMalformedJson" methodname="TryParseRejectsMalformedJson" classname="MatchAdmissionPayloadTests" runstate="Runnable" seed="1356904217" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000200" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1053" name="TryParseRejectsMissingPayload" fullname="MatchAdmissionPayloadTests.TryParseRejectsMissingPayload" methodname="TryParseRejectsMissingPayload" classname="MatchAdmissionPayloadTests" runstate="Runnable" seed="778049118" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000232" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1058" name="TryParseRejectsMissingServerId" fullname="MatchAdmissionPayloadTests.TryParseRejectsMissingServerId" methodname="TryParseRejectsMissingServerId" classname="MatchAdmissionPayloadTests" runstate="Runnable" seed="2060084806" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000267" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1054" name="TryParseRejectsTrailingGarbageAfterObject" fullname="MatchAdmissionPayloadTests.TryParseRejectsTrailingGarbageAfterObject" methodname="TryParseRejectsTrailingGarbageAfterObject" classname="MatchAdmissionPayloadTests" runstate="Runnable" seed="427758627" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000223" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1056" name="TryParseRejectsWrongGuidFormat" fullname="MatchAdmissionPayloadTests.TryParseRejectsWrongGuidFormat" methodname="TryParseRejectsWrongGuidFormat" classname="MatchAdmissionPayloadTests" runstate="Runnable" seed="32416205" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000361" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1057" name="TryParseRejectsWrongPlayerIdFormat" fullname="MatchAdmissionPayloadTests.TryParseRejectsWrongPlayerIdFormat" methodname="TryParseRejectsWrongPlayerIdFormat" classname="MatchAdmissionPayloadTests" runstate="Runnable" seed="1677494370" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000219" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1061" name="MatchAdmissionResultTests" fullname="MatchAdmissionResultTests" classname="MatchAdmissionResultTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.001637" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1062" name="AcceptedCreatesAcceptedResult" fullname="MatchAdmissionResultTests.AcceptedCreatesAcceptedResult" methodname="AcceptedCreatesAcceptedResult" classname="MatchAdmissionResultTests" runstate="Runnable" seed="948141353" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000438" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1063" name="RejectedCreatesRejectedResult" fullname="MatchAdmissionResultTests.RejectedCreatesRejectedResult" methodname="RejectedCreatesRejectedResult" classname="MatchAdmissionResultTests" runstate="Runnable" seed="47397152" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000358" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1064" name="MatchConnectionClientTests" fullname="MatchConnectionClientTests" classname="MatchConnectionClientTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.001524" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1066" name="AdmissionResultBroadcastCarriesAcceptedStateWithoutPayloadSecrets" fullname="MatchConnectionClientTests.AdmissionResultBroadcastCarriesAcceptedStateWithoutPayloadSecrets" methodname="AdmissionResultBroadcastCarriesAcceptedStateWithoutPayloadSecrets" classname="MatchConnectionClientTests" runstate="Runnable" seed="197401945" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000234" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1065" name="BuildAdmissionPayloadUsesAssignmentAndPlayerId" fullname="MatchConnectionClientTests.BuildAdmissionPayloadUsesAssignmentAndPlayerId" methodname="BuildAdmissionPayloadUsesAssignmentAndPlayerId" classname="MatchConnectionClientTests" runstate="Runnable" seed="388127115" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000593" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1067" name="MatchResultBuilderTests" fullname="MatchResultBuilderTests" classname="MatchResultBuilderTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.002974" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1069" name="BuildAssignsPhase05RewardCodeToEveryMixedOutcome" fullname="MatchResultBuilderTests.BuildAssignsPhase05RewardCodeToEveryMixedOutcome" methodname="BuildAssignsPhase05RewardCodeToEveryMixedOutcome" classname="MatchResultBuilderTests" runstate="Runnable" seed="2087732543" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.001090" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1068" name="BuildCreatesParticipantOutcomesAndRewardCodes" fullname="MatchResultBuilderTests.BuildCreatesParticipantOutcomesAndRewardCodes" methodname="BuildCreatesParticipantOutcomesAndRewardCodes" classname="MatchResultBuilderTests" runstate="Runnable" seed="1150803273" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000517" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1070" name="ToJsonEscapesControlCharactersInStrings" fullname="MatchResultBuilderTests.ToJsonEscapesControlCharactersInStrings" methodname="ToJsonEscapesControlCharactersInStrings" classname="MatchResultBuilderTests" runstate="Runnable" seed="73034092" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.000518" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1071" name="MatchResultSubmitterTests" fullname="MatchResultSubmitterTests" classname="MatchResultSubmitterTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.028695" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1073" name="HttpSenderWritesGameServerKeyHeader" fullname="MatchResultSubmitterTests.HttpSenderWritesGameServerKeyHeader" methodname="HttpSenderWritesGameServerKeyHeader" classname="MatchResultSubmitterTests" runstate="Runnable" seed="192041628" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.025436" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1072" name="SubmitAsyncTreatsDuplicateResponseAsAccepted" fullname="MatchResultSubmitterTests.SubmitAsyncTreatsDuplicateResponseAsAccepted" methodname="SubmitAsyncTreatsDuplicateResponseAsAccepted" classname="MatchResultSubmitterTests" runstate="Runnable" seed="85089415" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.002379" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1074" name="MatchTicketValidatorTests" fullname="MatchTicketValidatorTests" classname="MatchTicketValidatorTests" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:18Z" duration="1.077488" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1077" name="CanBeCreatedFromConfigWithoutExternalSender" fullname="MatchTicketValidatorTests.CanBeCreatedFromConfigWithoutExternalSender" methodname="CanBeCreatedFromConfigWithoutExternalSender" classname="MatchTicketValidatorTests" runstate="Runnable" seed="24469147" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:17Z" duration="0.001775" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1078" name="ValidateAsyncCreatedFromConfigAppliesConfiguredTimeout" fullname="MatchTicketValidatorTests.ValidateAsyncCreatedFromConfigAppliesConfiguredTimeout" methodname="ValidateAsyncCreatedFromConfigAppliesConfiguredTimeout" classname="MatchTicketValidatorTests" runstate="Runnable" seed="1987842251" result="Passed" start-time="2026-09-20 22:39:17Z" end-time="2026-09-20 22:39:18Z" duration="1.062175" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1076" name="ValidateAsyncCreatedFromConfigSendsConfiguredEndpointAndSharedKey" fullname="MatchTicketValidatorTests.ValidateAsyncCreatedFromConfigSendsConfiguredEndpointAndSharedKey" methodname="ValidateAsyncCreatedFromConfigSendsConfiguredEndpointAndSharedKey" classname="MatchTicketValidatorTests" runstate="Runnable" seed="844472997" result="Passed" start-time="2026-09-20 22:39:18Z" end-time="2026-09-20 22:39:18Z" duration="0.003495" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1083" name="ValidateAsyncDiagnosticsIncludeContextButNotSecrets" fullname="MatchTicketValidatorTests.ValidateAsyncDiagnosticsIncludeContextButNotSecrets" methodname="ValidateAsyncDiagnosticsIncludeContextButNotSecrets" classname="MatchTicketValidatorTests" runstate="Runnable" seed="750305601" result="Passed" start-time="2026-09-20 22:39:18Z" end-time="2026-09-20 22:39:18Z" duration="0.001621" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1082" name="ValidateAsyncRejectsAcceptedResponseForDifferentAdmission" fullname="MatchTicketValidatorTests.ValidateAsyncRejectsAcceptedResponseForDifferentAdmission" methodname="ValidateAsyncRejectsAcceptedResponseForDifferentAdmission" classname="MatchTicketValidatorTests" runstate="Runnable" seed="1710565165" result="Passed" start-time="2026-09-20 22:39:18Z" end-time="2026-09-20 22:39:18Z" duration="0.001229" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1079" name="ValidateAsyncRejectsInvalidTicketResponse" fullname="MatchTicketValidatorTests.ValidateAsyncRejectsInvalidTicketResponse" methodname="ValidateAsyncRejectsInvalidTicketResponse" classname="MatchTicketValidatorTests" runstate="Runnable" seed="1705076638" result="Passed" start-time="2026-09-20 22:39:18Z" end-time="2026-09-20 22:39:18Z" duration="0.000986" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1080" name="ValidateAsyncRejectsServerKeyFailure" fullname="MatchTicketValidatorTests.ValidateAsyncRejectsServerKeyFailure" methodname="ValidateAsyncRejectsServerKeyFailure" classname="MatchTicketValidatorTests" runstate="Runnable" seed="75977393" result="Passed" start-time="2026-09-20 22:39:18Z" end-time="2026-09-20 22:39:18Z" duration="0.001020" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1081" name="ValidateAsyncRejectsTimedOutValidation" fullname="MatchTicketValidatorTests.ValidateAsyncRejectsTimedOutValidation" methodname="ValidateAsyncRejectsTimedOutValidation" classname="MatchTicketValidatorTests" runstate="Runnable" seed="1238609418" result="Passed" start-time="2026-09-20 22:39:18Z" end-time="2026-09-20 22:39:18Z" duration="0.001208" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1075" name="ValidateAsyncSendsSharedKeyHeaderAndAcceptsValidResponse" fullname="MatchTicketValidatorTests.ValidateAsyncSendsSharedKeyHeaderAndAcceptsValidResponse" methodname="ValidateAsyncSendsSharedKeyHeaderAndAcceptsValidResponse" classname="MatchTicketValidatorTests" runstate="Runnable" seed="26143463" result="Passed" start-time="2026-09-20 22:39:18Z" end-time="2026-09-20 22:39:18Z" duration="0.001689" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1084" name="MovementValidatorTests" fullname="MovementValidatorTests" classname="MovementValidatorTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-09-20 22:39:18Z" end-time="2026-09-20 22:39:18Z" duration="0.006612" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1090" name="ValidateAcceptsFirstCommandFromPositionedInitialStateNearClientTimeZero" fullname="MovementValidatorTests.ValidateAcceptsFirstCommandFromPositionedInitialStateNearClientTimeZero" methodname="ValidateAcceptsFirstCommandFromPositionedInitialStateNearClientTimeZero" classname="MovementValidatorTests" runstate="Runnable" seed="1252014295" result="Passed" start-time="2026-09-20 22:39:18Z" end-time="2026-09-20 22:39:18Z" duration="0.002436" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1085" name="ValidateAcceptsNormalInputAndAdvancesState" fullname="MovementValidatorTests.ValidateAcceptsNormalInputAndAdvancesState" methodname="ValidateAcceptsNormalInputAndAdvancesState" classname="MovementValidatorTests" runstate="Runnable" seed="812999727" result="Passed" start-time="2026-09-20 22:39:18Z" end-time="2026-09-20 22:39:18Z" duration="0.000665" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1091" name="ValidateClampsVelocityToSpeedLimit" fullname="MovementValidatorTests.ValidateClampsVelocityToSpeedLimit" methodname="ValidateClampsVelocityToSpeedLimit" classname="MovementValidatorTests" runstate="Runnable" seed="1628832771" result="Passed" start-time="2026-09-20 22:39:18Z" end-time="2026-09-20 22:39:18Z" duration="0.000416" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1088" name="ValidateRejectsDuplicateSequence" fullname="MovementValidatorTests.ValidateRejectsDuplicateSequence" methodname="ValidateRejectsDuplicateSequence" classname="MovementValidatorTests" runstate="Runnable" seed="1439303223" result="Passed" start-time="2026-09-20 22:39:18Z" end-time="2026-09-20 22:39:18Z" duration="0.000437" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1089" name="ValidateRejectsExcessiveCommandRate" fullname="MovementValidatorTests.ValidateRejectsExcessiveCommandRate" methodname="ValidateRejectsExcessiveCommandRate" classname="MovementValidatorTests" runstate="Runnable" seed="28002805" result="Passed" start-time="2026-09-20 22:39:18Z" end-time="2026-09-20 22:39:18Z" duration="0.000389" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1086" name="ValidateRejectsNonFiniteAxis" fullname="MovementValidatorTests.ValidateRejectsNonFiniteAxis" methodname="ValidateRejectsNonFiniteAxis" classname="MovementValidatorTests" runstate="Runnable" seed="1333311738" result="Passed" start-time="2026-09-20 22:39:18Z" end-time="2026-09-20 22:39:18Z" duration="0.000286" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1087" name="ValidateRejectsOutOfRangeAxis" fullname="MovementValidatorTests.ValidateRejectsOutOfRangeAxis" methodname="ValidateRejectsOutOfRangeAxis" classname="MovementValidatorTests" runstate="Runnable" seed="922262945" result="Passed" start-time="2026-09-20 22:39:18Z" end-time="2026-09-20 22:39:18Z" duration="0.000251" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1101" name="NetworkedCoreLoadRunnerTests" fullname="NetworkedCoreLoadRunnerTests" classname="NetworkedCoreLoadRunnerTests" runstate="Runnable" testcasecount="13" result="Passed" start-time="2026-09-20 22:39:18Z" end-time="2026-09-20 22:39:19Z" duration="0.788135" total="13" passed="13" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1109" name="ApplySubmissionOutcomeRequiresDuplicateWithNoNewRewardTransactions" fullname="NetworkedCoreLoadRunnerTests.ApplySubmissionOutcomeRequiresDuplicateWithNoNewRewardTransactions" methodname="ApplySubmissionOutcomeRequiresDuplicateWithNoNewRewardTransactions" classname="NetworkedCoreLoadRunnerTests" runstate="Runnable" seed="485916891" result="Passed" start-time="2026-09-20 22:39:18Z" end-time="2026-09-20 22:39:18Z" duration="0.001061" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1114" name="BuildPhase05ResultPayloadAssignsRewardCodeToEveryOutcome" fullname="NetworkedCoreLoadRunnerTests.BuildPhase05ResultPayloadAssignsRewardCodeToEveryOutcome" methodname="BuildPhase05ResultPayloadAssignsRewardCodeToEveryOutcome" classname="NetworkedCoreLoadRunnerTests" runstate="Runnable" seed="438899362" result="Passed" start-time="2026-09-20 22:39:18Z" end-time="2026-09-20 22:39:18Z" duration="0.004998" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1107" name="EnvironmentReportPathOverridesPhase05DefaultReportPath" fullname="NetworkedCoreLoadRunnerTests.EnvironmentReportPathOverridesPhase05DefaultReportPath" methodname="EnvironmentReportPathOverridesPhase05DefaultReportPath" classname="NetworkedCoreLoadRunnerTests" runstate="Runnable" seed="2062348354" result="Passed" start-time="2026-09-20 22:39:18Z" end-time="2026-09-20 22:39:18Z" duration="0.002438" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1110" name="InvokePhase05FinalizationAllowsSubmissionWhenHookIsUnavailable" fullname="NetworkedCoreLoadRunnerTests.InvokePhase05FinalizationAllowsSubmissionWhenHookIsUnavailable" methodname="InvokePhase05FinalizationAllowsSubmissionWhenHookIsUnavailable" classname="NetworkedCoreLoadRunnerTests" runstate="Runnable" seed="1682349481" result="Passed" start-time="2026-09-20 22:39:18Z" end-time="2026-09-20 22:39:18Z" duration="0.001835" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1105" name="LoadRunnerConfiguresNetworkManagerToAllowMultipleInstances" fullname="NetworkedCoreLoadRunnerTests.LoadRunnerConfiguresNetworkManagerToAllowMultipleInstances" methodname="LoadRunnerConfiguresNetworkManagerToAllowMultipleInstances" classname="NetworkedCoreLoadRunnerTests" runstate="Runnable" seed="1201154465" result="Passed" start-time="2026-09-20 22:39:18Z" end-time="2026-09-20 22:39:18Z" duration="0.407297" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1104" name="LoadRunnerExceptionNoteIncludesTypeAndMessage" fullname="NetworkedCoreLoadRunnerTests.LoadRunnerExceptionNoteIncludesTypeAndMessage" methodname="LoadRunnerExceptionNoteIncludesTypeAndMessage" classname="NetworkedCoreLoadRunnerTests" runstate="Runnable" seed="1420422387" result="Passed" start-time="2026-09-20 22:39:18Z" end-time="2026-09-20 22:39:18Z" duration="0.000612" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1103" name="LoadRunnerOpensConfiguredSceneWhenNetworkManagerIsMissing" fullname="NetworkedCoreLoadRunnerTests.LoadRunnerOpensConfiguredSceneWhenNetworkManagerIsMissing" methodname="LoadRunnerOpensConfiguredSceneWhenNetworkManagerIsMissing" classname="NetworkedCoreLoadRunnerTests" runstate="Runnable" seed="1026595911" result="Passed" start-time="2026-09-20 22:39:18Z" end-time="2026-09-20 22:39:19Z" duration="0.362890" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1106" name="Phase05GameplayLoopOptionSwitchesDefaultReportPath" fullname="NetworkedCoreLoadRunnerTests.Phase05GameplayLoopOptionSwitchesDefaultReportPath" methodname="Phase05GameplayLoopOptionSwitchesDefaultReportPath" classname="NetworkedCoreLoadRunnerTests" runstate="Runnable" seed="53845390" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000808" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1111" name="Phase05RunSuccessRequiresSubmittedResultAndAcceptedDuplicate" fullname="NetworkedCoreLoadRunnerTests.Phase05RunSuccessRequiresSubmittedResultAndAcceptedDuplicate" methodname="Phase05RunSuccessRequiresSubmittedResultAndAcceptedDuplicate" classname="NetworkedCoreLoadRunnerTests" runstate="Runnable" seed="71306464" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.001068" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1108" name="Phase06CoreMatchOptionSwitchesDefaultReportPath" fullname="NetworkedCoreLoadRunnerTests.Phase06CoreMatchOptionSwitchesDefaultReportPath" methodname="Phase06CoreMatchOptionSwitchesDefaultReportPath" classname="NetworkedCoreLoadRunnerTests" runstate="Runnable" seed="656803236" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000400" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1113" name="Phase06RunFailsWhenDuplicateLootSucceededOrCoverageIsMissing" fullname="NetworkedCoreLoadRunnerTests.Phase06RunFailsWhenDuplicateLootSucceededOrCoverageIsMissing" methodname="Phase06RunFailsWhenDuplicateLootSucceededOrCoverageIsMissing" classname="NetworkedCoreLoadRunnerTests" runstate="Runnable" seed="803618527" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000639" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1112" name="Phase06RunSuccessRequiresCompletedClientsAndCoverageWithoutDuplicateLootSuccess" fullname="NetworkedCoreLoadRunnerTests.Phase06RunSuccessRequiresCompletedClientsAndCoverageWithoutDuplicateLootSuccess" methodname="Phase06RunSuccessRequiresCompletedClientsAndCoverageWithoutDuplicateLootSuccess" classname="NetworkedCoreLoadRunnerTests" runstate="Runnable" seed="1036778531" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000388" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1102" name="RecordFailedClientsMarksEveryTargetClientFailed" fullname="NetworkedCoreLoadRunnerTests.RecordFailedClientsMarksEveryTargetClientFailed" methodname="RecordFailedClientsMarksEveryTargetClientFailed" classname="NetworkedCoreLoadRunnerTests" runstate="Runnable" seed="1521530183" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000491" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1092" name="NetworkPlayerControllerTests" fullname="NetworkPlayerControllerTests" classname="NetworkPlayerControllerTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.025148" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1098" name="ApplyAuthoritativeInputDoesNotMoveTerminalPlayer" fullname="NetworkPlayerControllerTests.ApplyAuthoritativeInputDoesNotMoveTerminalPlayer" methodname="ApplyAuthoritativeInputDoesNotMoveTerminalPlayer" classname="NetworkPlayerControllerTests" runstate="Runnable" seed="1007768951" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.014588" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[Script NetworkPlayerController on object network-player-controller-test added a NetworkObject component to network-player-controller-test.
+]]></output>
+        </test-case>
+        <test-case id="1100" name="ApplyServerFireReturnsHitscanHitWhenRuntimeFireHitsTarget" fullname="NetworkPlayerControllerTests.ApplyServerFireReturnsHitscanHitWhenRuntimeFireHitsTarget" methodname="ApplyServerFireReturnsHitscanHitWhenRuntimeFireHitsTarget" classname="NetworkPlayerControllerTests" runstate="Runnable" seed="566530731" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.002110" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1095" name="CoreIntentMethodsUseServerRpc" fullname="NetworkPlayerControllerTests.CoreIntentMethodsUseServerRpc" methodname="CoreIntentMethodsUseServerRpc" classname="NetworkPlayerControllerTests" runstate="Runnable" seed="1460901433" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000839" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1097" name="CoreRuntimeConfigureForTestIsServerOnly" fullname="NetworkPlayerControllerTests.CoreRuntimeConfigureForTestIsServerOnly" methodname="CoreRuntimeConfigureForTestIsServerOnly" classname="NetworkPlayerControllerTests" runstate="Runnable" seed="875265948" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.001150" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1096" name="CoreRuntimeTestHelpersHaveServerAttributeAndExactReturnTypes" fullname="NetworkPlayerControllerTests.CoreRuntimeTestHelpersHaveServerAttributeAndExactReturnTypes" methodname="CoreRuntimeTestHelpersHaveServerAttributeAndExactReturnTypes" classname="NetworkPlayerControllerTests" runstate="Runnable" seed="764268623" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000281" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1093" name="LifeStateCannotBeSetDirectlyThroughPublicApi" fullname="NetworkPlayerControllerTests.LifeStateCannotBeSetDirectlyThroughPublicApi" methodname="LifeStateCannotBeSetDirectlyThroughPublicApi" classname="NetworkPlayerControllerTests" runstate="Runnable" seed="1080464642" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000336" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1094" name="LifeStateChangesUseServerMethod" fullname="NetworkPlayerControllerTests.LifeStateChangesUseServerMethod" methodname="LifeStateChangesUseServerMethod" classname="NetworkPlayerControllerTests" runstate="Runnable" seed="1966815881" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000266" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1099" name="RuntimeHelpersRejectTerminalPlayersBeforeMutatingInventoryOrCombat" fullname="NetworkPlayerControllerTests.RuntimeHelpersRejectTerminalPlayersBeforeMutatingInventoryOrCombat" methodname="RuntimeHelpersRejectTerminalPlayersBeforeMutatingInventoryOrCombat" classname="NetworkPlayerControllerTests" runstate="Runnable" seed="219011413" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.002354" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1115" name="PlayerInventoryTests" fullname="PlayerInventoryTests" classname="PlayerInventoryTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.007741" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1120" name="GetSlotsDoesNotExposeMutableInventoryState" fullname="PlayerInventoryTests.GetSlotsDoesNotExposeMutableInventoryState" methodname="GetSlotsDoesNotExposeMutableInventoryState" classname="PlayerInventoryTests" runstate="Runnable" seed="926938918" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000456" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1118" name="TryAddRejectsDuplicateTransaction" fullname="PlayerInventoryTests.TryAddRejectsDuplicateTransaction" methodname="TryAddRejectsDuplicateTransaction" classname="PlayerInventoryTests" runstate="Runnable" seed="853981882" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000386" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1117" name="TryAddRejectsFullInventoryWithoutPartialMutation" fullname="PlayerInventoryTests.TryAddRejectsFullInventoryWithoutPartialMutation" methodname="TryAddRejectsFullInventoryWithoutPartialMutation" classname="PlayerInventoryTests" runstate="Runnable" seed="1657322050" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000401" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1116" name="TryAddStacksIntoExistingSlotsBeforeUsingEmptySlots" fullname="PlayerInventoryTests.TryAddStacksIntoExistingSlotsBeforeUsingEmptySlots" methodname="TryAddStacksIntoExistingSlotsBeforeUsingEmptySlots" classname="PlayerInventoryTests" runstate="Runnable" seed="1684208687" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000674" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1119" name="TryRemoveConsumesQuantityAcrossSlots" fullname="PlayerInventoryTests.TryRemoveConsumesQuantityAcrossSlots" methodname="TryRemoveConsumesQuantityAcrossSlots" classname="PlayerInventoryTests" runstate="Runnable" seed="811057045" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000494" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1121" name="PlayerStateMachineTests" fullname="PlayerStateMachineTests" classname="PlayerStateMachineTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.005542" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1122" name="DamageTransitionsAliveToWoundedToDead" fullname="PlayerStateMachineTests.DamageTransitionsAliveToWoundedToDead" methodname="DamageTransitionsAliveToWoundedToDead" classname="PlayerStateMachineTests" runstate="Runnable" seed="2037874567" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000666" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1123" name="DuplicateDamageCorrelationDoesNotApplyTwice" fullname="PlayerStateMachineTests.DuplicateDamageCorrelationDoesNotApplyTwice" methodname="DuplicateDamageCorrelationDoesNotApplyTwice" classname="PlayerStateMachineTests" runstate="Runnable" seed="1777547635" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000370" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1125" name="HeadDamageUsesStandardMultiplierAndRoundsUp" fullname="PlayerStateMachineTests.HeadDamageUsesStandardMultiplierAndRoundsUp" methodname="HeadDamageUsesStandardMultiplierAndRoundsUp" classname="PlayerStateMachineTests" runstate="Runnable" seed="984808153" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000428" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1128" name="HealingDoesNotReviveDeadPlayers" fullname="PlayerStateMachineTests.HealingDoesNotReviveDeadPlayers" methodname="HealingDoesNotReviveDeadPlayers" classname="PlayerStateMachineTests" runstate="Runnable" seed="372067576" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000417" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1127" name="HealingReducesDamageAndCanReturnWoundedPlayerToAlive" fullname="PlayerStateMachineTests.HealingReducesDamageAndCanReturnWoundedPlayerToAlive" methodname="HealingReducesDamageAndCanReturnWoundedPlayerToAlive" classname="PlayerStateMachineTests" runstate="Runnable" seed="1421392555" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000432" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1129" name="HealingRejectsInvalidDuplicateMismatchedAndUnneededHealing" fullname="PlayerStateMachineTests.HealingRejectsInvalidDuplicateMismatchedAndUnneededHealing" methodname="HealingRejectsInvalidDuplicateMismatchedAndUnneededHealing" classname="PlayerStateMachineTests" runstate="Runnable" seed="1412941296" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000750" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1126" name="LimbDamageUsesStandardMultiplierAndRoundsUpToAtLeastOne" fullname="PlayerStateMachineTests.LimbDamageUsesStandardMultiplierAndRoundsUpToAtLeastOne" methodname="LimbDamageUsesStandardMultiplierAndRoundsUpToAtLeastOne" classname="PlayerStateMachineTests" runstate="Runnable" seed="1594373870" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000366" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1124" name="TerminalStateRejectsDamageAndExtraction" fullname="PlayerStateMachineTests.TerminalStateRejectsDamageAndExtraction" methodname="TerminalStateRejectsDamageAndExtraction" classname="PlayerStateMachineTests" runstate="Runnable" seed="1383186922" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000359" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1130" name="ServerPlayerRegistryTests" fullname="ServerPlayerRegistryTests" classname="ServerPlayerRegistryTests" runstate="Runnable" testcasecount="10" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.008582" total="10" passed="10" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1139" name="ApplyTechnicalDamageRecordsAcceptedAndRejectedDamageMetrics" fullname="ServerPlayerRegistryTests.ApplyTechnicalDamageRecordsAcceptedAndRejectedDamageMetrics" methodname="ApplyTechnicalDamageRecordsAcceptedAndRejectedDamageMetrics" classname="ServerPlayerRegistryTests" runstate="Runnable" seed="1844031383" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000606" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1140" name="RegisterAcceptedConnectionRegistersPlayerWithConfiguredCoreRuntime" fullname="ServerPlayerRegistryTests.RegisterAcceptedConnectionRegistersPlayerWithConfiguredCoreRuntime" methodname="RegisterAcceptedConnectionRegistersPlayerWithConfiguredCoreRuntime" classname="ServerPlayerRegistryTests" runstate="Runnable" seed="626356189" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000785" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1132" name="RegisterAcceptedConnectionRejectsDuplicateConnection" fullname="ServerPlayerRegistryTests.RegisterAcceptedConnectionRejectsDuplicateConnection" methodname="RegisterAcceptedConnectionRejectsDuplicateConnection" classname="ServerPlayerRegistryTests" runstate="Runnable" seed="1870828831" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000301" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1133" name="RegisterAcceptedConnectionRejectsDuplicatePlayer" fullname="ServerPlayerRegistryTests.RegisterAcceptedConnectionRejectsDuplicatePlayer" methodname="RegisterAcceptedConnectionRejectsDuplicatePlayer" classname="ServerPlayerRegistryTests" runstate="Runnable" seed="321155429" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000264" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1134" name="RegisterAcceptedConnectionRejectsEmptyPlayerId" fullname="ServerPlayerRegistryTests.RegisterAcceptedConnectionRejectsEmptyPlayerId" methodname="RegisterAcceptedConnectionRejectsEmptyPlayerId" classname="ServerPlayerRegistryTests" runstate="Runnable" seed="2050219506" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000232" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1131" name="RegisterAcceptedConnectionStoresOnePlayerPerConnection" fullname="ServerPlayerRegistryTests.RegisterAcceptedConnectionStoresOnePlayerPerConnection" methodname="RegisterAcceptedConnectionStoresOnePlayerPerConnection" classname="ServerPlayerRegistryTests" runstate="Runnable" seed="1132843435" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000238" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1135" name="RemoveConnectionRemovesAcceptedPlayerState" fullname="ServerPlayerRegistryTests.RemoveConnectionRemovesAcceptedPlayerState" methodname="RemoveConnectionRemovesAcceptedPlayerState" classname="ServerPlayerRegistryTests" runstate="Runnable" seed="1537940203" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000377" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1136" name="RemoveConnectionReturnsFalseForUnknownConnection" fullname="ServerPlayerRegistryTests.RemoveConnectionReturnsFalseForUnknownConnection" methodname="RemoveConnectionReturnsFalseForUnknownConnection" classname="ServerPlayerRegistryTests" runstate="Runnable" seed="522890364" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000151" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1137" name="SnapshotResultsMarksRemovedNonTerminalPlayersDisconnected" fullname="ServerPlayerRegistryTests.SnapshotResultsMarksRemovedNonTerminalPlayersDisconnected" methodname="SnapshotResultsMarksRemovedNonTerminalPlayersDisconnected" classname="ServerPlayerRegistryTests" runstate="Runnable" seed="1693842824" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000835" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1138" name="SnapshotResultsReturnsTerminalOutcomesForExtractedDeadAndRemovedPlayers" fullname="ServerPlayerRegistryTests.SnapshotResultsReturnsTerminalOutcomesForExtractedDeadAndRemovedPlayers" methodname="SnapshotResultsReturnsTerminalOutcomesForExtractedDeadAndRemovedPlayers" classname="ServerPlayerRegistryTests" runstate="Runnable" seed="1729437656" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.002401" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1153" name="ServerRaycastWeaponResolverTests" fullname="ServerRaycastWeaponResolverTests" classname="ServerRaycastWeaponResolverTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.003651" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1156" name="TryResolveDamageReturnsDamageEventAndCalculatedBodyZoneDamage" fullname="ServerRaycastWeaponResolverTests.TryResolveDamageReturnsDamageEventAndCalculatedBodyZoneDamage" methodname="TryResolveDamageReturnsDamageEventAndCalculatedBodyZoneDamage" classname="ServerRaycastWeaponResolverTests" runstate="Runnable" seed="26137659" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.001340" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1155" name="TryResolveRejectsZeroDirection" fullname="ServerRaycastWeaponResolverTests.TryResolveRejectsZeroDirection" methodname="TryResolveRejectsZeroDirection" classname="ServerRaycastWeaponResolverTests" runstate="Runnable" seed="1500933520" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000492" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1154" name="TryResolveReturnsPlayerIdAndBodyZoneFromFirstHitbox" fullname="ServerRaycastWeaponResolverTests.TryResolveReturnsPlayerIdAndBodyZoneFromFirstHitbox" methodname="TryResolveReturnsPlayerIdAndBodyZoneFromFirstHitbox" classname="ServerRaycastWeaponResolverTests" runstate="Runnable" seed="1585052882" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000697" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1157" name="WeaponRuntimeTests" fullname="WeaponRuntimeTests" classname="WeaponRuntimeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.005143" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1158" name="TryFireConsumesAmmoAndRejectsUntilCooldownExpires" fullname="WeaponRuntimeTests.TryFireConsumesAmmoAndRejectsUntilCooldownExpires" methodname="TryFireConsumesAmmoAndRejectsUntilCooldownExpires" classname="WeaponRuntimeTests" runstate="Runnable" seed="1968737353" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000880" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1160" name="TryFireRejectsDuplicateRequestWithoutConsumingAmmo" fullname="WeaponRuntimeTests.TryFireRejectsDuplicateRequestWithoutConsumingAmmo" methodname="TryFireRejectsDuplicateRequestWithoutConsumingAmmo" classname="WeaponRuntimeTests" runstate="Runnable" seed="2010577248" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000379" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1161" name="TryFireRejectsEmptyMagazineAndTryReloadRejectsDuplicateNotNeededAndEmptyReserve" fullname="WeaponRuntimeTests.TryFireRejectsEmptyMagazineAndTryReloadRejectsDuplicateNotNeededAndEmptyReserve" methodname="TryFireRejectsEmptyMagazineAndTryReloadRejectsDuplicateNotNeededAndEmptyReserve" classname="WeaponRuntimeTests" runstate="Runnable" seed="249651382" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.001232" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1159" name="TryReloadMovesReserveAmmoIntoMagazineAfterReloadTime" fullname="WeaponRuntimeTests.TryReloadMovesReserveAmmoIntoMagazineAfterReloadTime" methodname="TryReloadMovesReserveAmmoIntoMagazineAfterReloadTime" classname="WeaponRuntimeTests" runstate="Runnable" seed="338944910" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000847" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1162" name="ZoneRuntimeTests" fullname="ZoneRuntimeTests" classname="ZoneRuntimeTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.002459" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1164" name="ConstructorRejectsEmptyPhaseList" fullname="ZoneRuntimeTests.ConstructorRejectsEmptyPhaseList" methodname="ConstructorRejectsEmptyPhaseList" classname="ZoneRuntimeTests" runstate="Runnable" seed="1026117323" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000542" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1163" name="GetActivePhaseSelectsPhaseByElapsedSecondsAfterSorting" fullname="ZoneRuntimeTests.GetActivePhaseSelectsPhaseByElapsedSecondsAfterSorting" methodname="GetActivePhaseSelectsPhaseByElapsedSecondsAfterSorting" classname="ZoneRuntimeTests" runstate="Runnable" seed="707766096" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000462" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1165" name="ShouldApplyDamageTicksPerPlayerOnlyOutsideSafeVolumeDuringActivePhase" fullname="ZoneRuntimeTests.ShouldApplyDamageTicksPerPlayerOnlyOutsideSafeVolumeDuringActivePhase" methodname="ShouldApplyDamageTicksPerPlayerOnlyOutsideSafeVolumeDuringActivePhase" classname="ZoneRuntimeTests" runstate="Runnable" seed="2128511671" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000416" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1166" name="ZoneVolumeTests" fullname="ZoneVolumeTests" classname="ZoneVolumeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.004129" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1168" name="ContainsReturnsFalseAndWarnsOnceWhenColliderIsMissing" fullname="ZoneVolumeTests.ContainsReturnsFalseAndWarnsOnceWhenColliderIsMissing" methodname="ContainsReturnsFalseAndWarnsOnceWhenColliderIsMissing" classname="ZoneVolumeTests" runstate="Runnable" seed="442669662" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.002580" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[ZoneVolume requires a Collider to evaluate containment.
+]]></output>
+        </test-case>
+        <test-case id="1167" name="ContainsUsesSceneColliderBoundsForWorldPositions" fullname="ZoneVolumeTests.ContainsUsesSceneColliderBoundsForWorldPositions" methodname="ContainsUsesSceneColliderBoundsForWorldPositions" classname="ZoneVolumeTests" runstate="Runnable" seed="28941774" result="Passed" start-time="2026-09-20 22:39:19Z" end-time="2026-09-20 22:39:19Z" duration="0.000759" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[Saving results to: C:/Users/Maany/AppData/LocalLow/DefaultCompany/My project\TestResults.xml
+]]></output>
+        </test-case>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

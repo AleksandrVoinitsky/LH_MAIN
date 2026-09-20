@@ -29,9 +29,10 @@ namespace LH.Main.Unity.Load
         public NetworkManager NetworkManager { get; }
         public int ClientIndex { get; }
         public bool Phase05GameplayLoop { get; }
+        public bool Phase06CoreMatch { get; }
         public Action<Guid, int, string> TechnicalDamageSink { get; }
 
-        public BotScenario(MatchAssignment assignment, Guid playerId, int durationSeconds, NetworkManager networkManager, int clientIndex = 0, bool phase05GameplayLoop = false, Action<Guid, int, string> technicalDamageSink = null)
+        public BotScenario(MatchAssignment assignment, Guid playerId, int durationSeconds, NetworkManager networkManager, int clientIndex = 0, bool phase05GameplayLoop = false, Action<Guid, int, string> technicalDamageSink = null, bool phase06CoreMatch = false)
         {
             Assignment = assignment;
             PlayerId = playerId;
@@ -40,6 +41,7 @@ namespace LH.Main.Unity.Load
             ClientIndex = clientIndex;
             Phase05GameplayLoop = phase05GameplayLoop;
             TechnicalDamageSink = technicalDamageSink;
+            Phase06CoreMatch = phase06CoreMatch;
         }
     }
 
@@ -48,6 +50,16 @@ namespace LH.Main.Unity.Load
         Extracted,
         Dead,
         Disconnected
+    }
+
+    public enum BotPhase06Action
+    {
+        Move,
+        PickupLoot,
+        FireWeapon,
+        ReloadWeapon,
+        ThrowGrenade,
+        UseMedItem
     }
 
     public sealed class BotResult
@@ -59,6 +71,12 @@ namespace LH.Main.Unity.Load
         public bool Extracted { get; set; }
         public bool Dead { get; set; }
         public bool DisconnectedOutcome { get; set; }
+        public bool PickedUpLoot { get; set; }
+        public bool FiredWeapon { get; set; }
+        public bool ReloadedWeapon { get; set; }
+        public bool ThrewGrenade { get; set; }
+        public bool UsedMedItem { get; set; }
+        public bool TookZoneDamage { get; set; }
         public string FailureReason { get; set; } = string.Empty;
     }
 
@@ -80,6 +98,23 @@ namespace LH.Main.Unity.Load
                 default:
                     return new BotMove(-1f, 0f);
             }
+        }
+
+        public static BotPhase06Action GetPhase06ActionForElapsedSeconds(double elapsedSeconds)
+        {
+            double normalized = Math.Max(0d, elapsedSeconds) % SegmentSeconds;
+            if (normalized >= 1d && normalized < 3d)
+                return BotPhase06Action.PickupLoot;
+            if (normalized >= 3d && normalized < 5d)
+                return BotPhase06Action.FireWeapon;
+            if (normalized >= 5d && normalized < 7d)
+                return BotPhase06Action.ReloadWeapon;
+            if (normalized >= 7d && normalized < 9d)
+                return BotPhase06Action.ThrowGrenade;
+            if (normalized >= 9d)
+                return BotPhase06Action.UseMedItem;
+
+            return BotPhase06Action.Move;
         }
 
         public static BotPhase05Outcome GetPhase05OutcomeForClientIndex(int clientIndex)
@@ -131,6 +166,7 @@ namespace LH.Main.Unity.Load
                 player.ServerApplyInput(new MovementCommand(sequence++, move.MoveX, move.MoveY, Time.realtimeSinceStartupAsDouble));
                 result.Moved = true;
                 ApplyPhase05OutcomeIfNeeded(scenario, phase05Outcome, result);
+                ApplyPhase06ActionIfNeeded(scenario, player, (DateTime.UtcNow - startedAtUtc).TotalSeconds, result);
                 await Task.Delay(100, cancellationToken);
             }
 
@@ -157,6 +193,51 @@ namespace LH.Main.Unity.Load
                     break;
                 default:
                     result.DisconnectedOutcome = true;
+                    break;
+            }
+        }
+
+        private static void ApplyPhase06ActionIfNeeded(BotScenario scenario, NetworkPlayerController player, double elapsedSeconds, BotResult result)
+        {
+            if (!scenario.Phase06CoreMatch)
+                return;
+
+            switch (GetPhase06ActionForElapsedSeconds(elapsedSeconds))
+            {
+                case BotPhase06Action.PickupLoot:
+                    if (!result.PickedUpLoot)
+                    {
+                        player.ServerPickupLoot(Guid.Empty, Guid.NewGuid());
+                        result.PickedUpLoot = true;
+                    }
+                    break;
+                case BotPhase06Action.FireWeapon:
+                    if (!result.FiredWeapon)
+                    {
+                        player.ServerFireWeapon(Guid.NewGuid(), player.transform.position, Vector3.forward);
+                        result.FiredWeapon = true;
+                    }
+                    break;
+                case BotPhase06Action.ReloadWeapon:
+                    if (!result.ReloadedWeapon)
+                    {
+                        player.ServerReloadWeapon(Guid.NewGuid());
+                        result.ReloadedWeapon = true;
+                    }
+                    break;
+                case BotPhase06Action.ThrowGrenade:
+                    if (!result.ThrewGrenade)
+                    {
+                        player.ServerThrowGrenade(Guid.NewGuid(), player.transform.position, Vector3.forward);
+                        result.ThrewGrenade = true;
+                    }
+                    break;
+                case BotPhase06Action.UseMedItem:
+                    if (!result.UsedMedItem)
+                    {
+                        player.ServerUseMed("med_basic", Guid.NewGuid());
+                        result.UsedMedItem = true;
+                    }
                     break;
             }
         }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using FishNet.Managing;
@@ -22,6 +23,7 @@ namespace LH.Main.Unity.Editor
         private const string DefaultBackendUrl = "http://127.0.0.1:8080";
         private const string DefaultReportPath = ".superpowers/sdd/2026-09-20-phase-04-networked-core/task-6-load-report.json";
         private const string Phase05DefaultReportPath = ".superpowers/sdd/2026-09-20-phase-05-gameplay-loop/task-7-final-load-64.json";
+        private const string Phase06DefaultReportPath = ".superpowers/sdd/2026-09-21-phase-06-core-match/task-9-final-load-64.json";
         private const string DefaultSharedKey = "local-game-server-shared-key-change-before-deployment";
         private const string LoadRunnerScenePath = "Assets/Scenes/Server/ServerBootstrap.unity";
         private const string PendingPlayModeRunKey = "LH.Main.Unity.Editor.NetworkedCoreLoadRunner.PendingPlayModeRun";
@@ -95,7 +97,8 @@ namespace LH.Main.Unity.Editor
                             clientNetworkManager,
                             i,
                             options.Phase05GameplayLoop,
-                            technicalDamageSink),
+                            technicalDamageSink,
+                            options.Phase06CoreMatch),
                         cancellationSource.Token));
                 }
 
@@ -115,8 +118,20 @@ namespace LH.Main.Unity.Editor
                         report.DeadClients++;
                     if (result.DisconnectedOutcome)
                         report.DisconnectedOutcomeClients++;
+                    if (result.PickedUpLoot)
+                        report.LootPickups++;
+                    if (result.FiredWeapon)
+                        report.FireRequests++;
+                    if (result.ReloadedWeapon)
+                        report.ReloadRequests++;
+                    if (result.ThrewGrenade)
+                        report.GrenadesThrown++;
+                    if (result.UsedMedItem)
+                        report.MedItemsUsed++;
+                    if (result.TookZoneDamage)
+                        report.ZoneDamageTicks++;
 
-                    if (IsCompletedResult(result, options.Phase05GameplayLoop))
+                    if (IsCompletedResult(result, options.Phase05GameplayLoop, options.Phase06CoreMatch))
                         report.CompletedClients++;
                     else
                     {
@@ -131,7 +146,10 @@ namespace LH.Main.Unity.Editor
                         await SubmitPhase05ResultAsync(options, assignments, results, report, cancellationSource.Token);
                 }
 
-                exitCode = ShouldExitSuccessfully(report, options.Clients, options.Phase05GameplayLoop) ? 0 : 1;
+                if (options.Phase06CoreMatch)
+                    await TryCollectPhase06ServerMetricsAsync(report, cancellationSource.Token);
+
+                exitCode = ShouldExitSuccessfully(report, options.Clients, options.Phase05GameplayLoop, options.Phase06CoreMatch) ? 0 : 1;
             }
             catch (Exception ex)
             {
@@ -255,10 +273,23 @@ namespace LH.Main.Unity.Editor
             }
         }
 
-        private static bool IsCompletedResult(BotResult result, bool phase05GameplayLoop)
+        private static bool IsCompletedResult(BotResult result, bool phase05GameplayLoop, bool phase06CoreMatch)
         {
-            if (!phase05GameplayLoop)
+            if (!phase05GameplayLoop && !phase06CoreMatch)
                 return result.Connected && result.Spawned && result.Moved && result.DisconnectedCleanly;
+
+            if (phase06CoreMatch)
+            {
+                return result.Connected
+                    && result.Spawned
+                    && result.Moved
+                    && result.DisconnectedCleanly
+                    && result.PickedUpLoot
+                    && result.FiredWeapon
+                    && result.ReloadedWeapon
+                    && result.ThrewGrenade
+                    && result.UsedMedItem;
+            }
 
             return result.Connected
                 && result.Spawned
@@ -289,7 +320,31 @@ namespace LH.Main.Unity.Editor
 
         private static bool ShouldExitSuccessfully(LoadScenarioReport report, int targetClients, bool phase05GameplayLoop)
         {
+            return ShouldExitSuccessfully(report, targetClients, phase05GameplayLoop, false);
+        }
+
+        private static bool ShouldExitSuccessfully(LoadScenarioReport report, int targetClients, bool phase05GameplayLoop, bool phase06CoreMatch)
+        {
             bool clientsSucceeded = report.FailedClients == 0 && report.CompletedClients == targetClients;
+            if (phase06CoreMatch)
+            {
+                bool phase06Succeeded = !report.DuplicateLootSucceeded
+                    && report.LootPickups > 0
+                    && report.DuplicateLootPrevented > 0
+                    && report.FireRequests > 0
+                    && report.GrenadesExploded > 0
+                    && report.ZoneDamageTicks > 0
+                    && report.MedItemsUsed > 0;
+
+                if ((!clientsSucceeded || !phase06Succeeded) && report.FailedClients == 0)
+                {
+                    report.FailedClients = Math.Max(1, targetClients - report.CompletedClients);
+                    report.DisconnectReasons.Add("phase06_core_match_verification_failed");
+                }
+
+                return clientsSucceeded && phase06Succeeded;
+            }
+
             if (!phase05GameplayLoop)
                 return clientsSucceeded;
 
@@ -378,6 +433,38 @@ namespace LH.Main.Unity.Editor
             }
         }
 
+        private static async Task TryCollectPhase06ServerMetricsAsync(LoadScenarioReport report, CancellationToken cancellationToken)
+        {
+            string[] urls = { "http://127.0.0.1:8091/status", "http://127.0.0.1:8092/status" };
+            for (int i = 0; i < urls.Length; i++)
+            {
+                try
+                {
+                    using var httpClient = new HttpClient();
+                    using HttpResponseMessage response = await httpClient.GetAsync(urls[i], cancellationToken);
+                    string body = await response.Content.ReadAsStringAsync();
+                    report.ServerStatusSnapshots.Add(body);
+                    report.LootPickups = Math.Max(report.LootPickups, report.LootPickups + ReadJsonInt(body, "acceptedPickupAttempts"));
+                    report.DuplicateLootPrevented += ReadJsonInt(body, "duplicateLootPickups");
+                    report.FireRequests = Math.Max(report.FireRequests, report.FireRequests + ReadJsonInt(body, "acceptedFireRequests"));
+                    report.GrenadesThrown = Math.Max(report.GrenadesThrown, report.GrenadesThrown + ReadJsonInt(body, "grenadesThrown"));
+                    report.GrenadesExploded += ReadJsonInt(body, "grenadesExploded");
+                    report.ZoneDamageTicks += ReadJsonInt(body, "zoneDamageTicks");
+                    report.MedItemsUsed = Math.Max(report.MedItemsUsed, report.MedItemsUsed + ReadJsonInt(body, "medItemsUsed"));
+                }
+                catch (Exception ex)
+                {
+                    report.MetricCollectionGaps.Add("Phase 06 game-server status collection failed: " + ex.GetType().Name + " " + urls[i]);
+                }
+            }
+        }
+
+        private static int ReadJsonInt(string json, string propertyName)
+        {
+            Match match = Regex.Match(json ?? string.Empty, "\\\"" + Regex.Escape(propertyName) + "\\\"\\s*:\\s*(\\d+)");
+            return match.Success && int.TryParse(match.Groups[1].Value, out int value) ? value : 0;
+        }
+
         private static string EscapeJson(string value)
         {
             return (value ?? string.Empty).Replace("\\", "\\\\", StringComparison.Ordinal)
@@ -418,6 +505,7 @@ namespace LH.Main.Unity.Editor
             public string SharedKey { get; private set; } = Environment.GetEnvironmentVariable("GAME_SERVER_SHARED_KEY") ?? DefaultSharedKey;
             public string ReportPath { get; private set; }
             public bool Phase05GameplayLoop { get; private set; }
+            public bool Phase06CoreMatch { get; private set; }
 
             public static LoadRunnerOptions FromCommandLine(string[] args)
             {
@@ -440,10 +528,14 @@ namespace LH.Main.Unity.Editor
                     }
                     if (args[i] == "-lhPhase05GameplayLoop" && i + 1 < args.Length && bool.TryParse(args[i + 1], out bool phase05GameplayLoop))
                         options.Phase05GameplayLoop = phase05GameplayLoop;
+                    if ((args[i] == "--phase06CoreMatch" || args[i] == "-lhPhase06CoreMatch") && i + 1 < args.Length && bool.TryParse(args[i + 1], out bool phase06CoreMatch))
+                        options.Phase06CoreMatch = phase06CoreMatch;
                 }
 
                 if (options.Phase05GameplayLoop && !options._environmentReportPathSet && !reportPathFromCommandLine)
                     options.ReportPath = Phase05DefaultReportPath;
+                if (options.Phase06CoreMatch && !options._environmentReportPathSet && !reportPathFromCommandLine)
+                    options.ReportPath = Phase06DefaultReportPath;
 
                 return options;
             }
