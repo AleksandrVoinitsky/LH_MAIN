@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using LH.Main.Unity.Gameplay;
 using LH.Main.Unity.Networking;
 using LH.Main.Unity.Server;
 using NUnit.Framework;
@@ -80,6 +81,20 @@ public sealed class ServerPlayerRegistryTests
         bool removed = registry.RemoveConnection(7);
 
         Assert.That(removed, Is.False);
+    }
+
+    [Test]
+    public void SnapshotResultsMarksRemovedNonTerminalPlayersDisconnected()
+    {
+        var registry = new ServerPlayerRegistry();
+        registry.RegisterAcceptedConnection(7, MatchId, PlayerId);
+        registry.RemoveConnection(7);
+
+        var results = registry.SnapshotResults(DateTime.UtcNow);
+
+        Assert.That(results, Has.Count.EqualTo(1));
+        Assert.That(results[0].PlayerId, Is.EqualTo(PlayerId));
+        Assert.That(results[0].LifeState, Is.EqualTo(PlayerLifeState.Disconnected));
     }
 }
 

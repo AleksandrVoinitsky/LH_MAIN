@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using LH.Main.Unity.Gameplay;
 
 namespace LH.Main.Unity.Networking
 {
@@ -7,6 +8,7 @@ namespace LH.Main.Unity.Networking
     {
         private readonly Dictionary<int, AcceptedPlayer> _playersByConnectionId = new Dictionary<int, AcceptedPlayer>();
         private readonly Dictionary<Guid, int> _connectionIdsByPlayerId = new Dictionary<Guid, int>();
+        private readonly Dictionary<Guid, RegisteredPlayer> _playersByPlayerId = new Dictionary<Guid, RegisteredPlayer>();
         private readonly HashSet<int> _spawnedConnectionIds = new HashSet<int>();
 
         public int ActivePlayerCount => _playersByConnectionId.Count;
@@ -20,7 +22,14 @@ namespace LH.Main.Unity.Networking
             if (_playersByConnectionId.ContainsKey(connectionId) || _connectionIdsByPlayerId.ContainsKey(playerId))
                 return false;
 
-            _playersByConnectionId.Add(connectionId, new AcceptedPlayer(connectionId, matchId, playerId, DateTime.UtcNow));
+            DateTime acceptedAtUtc = DateTime.UtcNow;
+            if (!_playersByPlayerId.TryGetValue(playerId, out RegisteredPlayer registeredPlayer))
+                registeredPlayer = new RegisteredPlayer(PlayerStateMachine.Create(playerId), acceptedAtUtc);
+            else
+                registeredPlayer = registeredPlayer.WithAcceptedAt(acceptedAtUtc);
+
+            _playersByPlayerId[playerId] = registeredPlayer;
+            _playersByConnectionId.Add(connectionId, new AcceptedPlayer(connectionId, matchId, playerId, acceptedAtUtc));
             _connectionIdsByPlayerId.Add(playerId, connectionId);
             GameServerMetrics.SetActiveConnectionCount(ActivePlayerCount);
             return true;
@@ -58,6 +67,35 @@ namespace LH.Main.Unity.Networking
             return _playersByConnectionId.TryGetValue(connectionId, out acceptedPlayer);
         }
 
+        public bool TryGetPlayerState(Guid playerId, out PlayerStateMachine stateMachine)
+        {
+            if (_playersByPlayerId.TryGetValue(playerId, out RegisteredPlayer registeredPlayer))
+            {
+                stateMachine = registeredPlayer.StateMachine;
+                return true;
+            }
+
+            stateMachine = null;
+            return false;
+        }
+
+        public IReadOnlyList<PlayerResultSnapshot> SnapshotResults(DateTime utcNow)
+        {
+            var results = new List<PlayerResultSnapshot>(_playersByPlayerId.Count);
+            foreach (RegisteredPlayer registeredPlayer in _playersByPlayerId.Values)
+            {
+                PlayerStateMachine stateMachine = registeredPlayer.StateMachine;
+                PlayerLifeState lifeState = stateMachine.LifeState;
+                if (!lifeState.IsTerminal() && !_connectionIdsByPlayerId.ContainsKey(stateMachine.PlayerId))
+                    lifeState = PlayerLifeState.Disconnected;
+
+                int survivalSeconds = Math.Max(0, (int)(utcNow - registeredPlayer.AcceptedAtUtc).TotalSeconds);
+                results.Add(new PlayerResultSnapshot(stateMachine.PlayerId, lifeState, survivalSeconds, 0, stateMachine.DamageTaken));
+            }
+
+            return results;
+        }
+
         public readonly struct AcceptedPlayer
         {
             public int ConnectionId { get; }
@@ -71,6 +109,23 @@ namespace LH.Main.Unity.Networking
                 MatchId = matchId;
                 PlayerId = playerId;
                 AcceptedAtUtc = acceptedAtUtc;
+            }
+        }
+
+        private readonly struct RegisteredPlayer
+        {
+            public PlayerStateMachine StateMachine { get; }
+            public DateTime AcceptedAtUtc { get; }
+
+            public RegisteredPlayer(PlayerStateMachine stateMachine, DateTime acceptedAtUtc)
+            {
+                StateMachine = stateMachine;
+                AcceptedAtUtc = acceptedAtUtc;
+            }
+
+            public RegisteredPlayer WithAcceptedAt(DateTime acceptedAtUtc)
+            {
+                return new RegisteredPlayer(StateMachine, acceptedAtUtc);
             }
         }
     }
