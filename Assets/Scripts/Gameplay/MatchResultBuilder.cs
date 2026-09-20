@@ -23,7 +23,7 @@ namespace LH.Main.Unity.Gameplay
                     player.SurvivalSeconds,
                     player.DamageDealt,
                     player.DamageTaken,
-                    player.LifeState == PlayerLifeState.Extracted ? ExtractedRewardCode : string.Empty);
+                    ExtractedRewardCode);
             }
 
             return new MatchResultPayload(Guid.NewGuid(), matchId, serverId, completedAtUtc, participants);

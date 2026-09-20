@@ -81,3 +81,39 @@ git diff --check
 ```
 
 Output summary: no whitespace-error lines were reported. Git printed CRLF normalization warnings for unrelated dirty files; no intended Task 8 files required whitespace fixes.
+
+## Final-Review Fix Evidence
+
+Changes:
+
+- `MatchResultBuilder` now emits `phase05_test_reward` for every Phase 05 participant outcome, including extracted, dead, and disconnected runtime snapshots.
+- Added an EditMode mixed-outcome builder regression proving all participants receive the supported reward code.
+- Added an EditMode finalization regression that configures a `GameServerBootstrap` with a real `ServerPlayerRegistry`, mixed extracted/dead/disconnected player states, and a fake backend-rule sender; it invokes `FinalizeMatchForLoadRunner()` and verifies the submitted payload is accepted only when all reward codes are supported.
+
+Red evidence:
+
+```powershell
+& "C:\Program Files\Unity\Hub\Editor\6000.3.14f1\Editor\Unity.exe" -batchmode -projectPath "D:\LH_MAIN-phase-02" -runTests -testPlatform EditMode -testFilter "MatchResultBuilderTests.BuildAssignsPhase05RewardCodeToEveryMixedOutcome;GameServerBootstrapAdmissionReflectionTests.FinalizeMatchForLoadRunnerSubmitsMixedRuntimeSnapshotWithSupportedRewards" -testResults ".superpowers/sdd/2026-09-20-phase-05-gameplay-loop/final-review-fix-red-editmode.xml"
+```
+
+Result: `.superpowers/sdd/2026-09-20-phase-05-gameplay-loop/final-review-fix-red-editmode.xml` reported `0/2` passed before the production fix. The builder regression failed on an empty dead/disconnected reward code, and the bootstrap finalization regression failed because the fake backend rule rejected the mixed runtime payload.
+
+Green evidence:
+
+```powershell
+& "C:\Program Files\Unity\Hub\Editor\6000.3.14f1\Editor\Unity.exe" -batchmode -projectPath "D:\LH_MAIN-phase-02" -runTests -testPlatform EditMode -testFilter "MatchResultBuilderTests.BuildAssignsPhase05RewardCodeToEveryMixedOutcome;GameServerBootstrapAdmissionReflectionTests.FinalizeMatchForLoadRunnerSubmitsMixedRuntimeSnapshotWithSupportedRewards" -testResults ".superpowers/sdd/2026-09-20-phase-05-gameplay-loop/final-review-fix-green-editmode.xml"
+```
+
+Result: `.superpowers/sdd/2026-09-20-phase-05-gameplay-loop/final-review-fix-green-editmode.xml` reported `2/2` passed, `failed=0`.
+
+Whitespace check:
+
+```powershell
+git diff --check -- Assets/Scripts/Gameplay Assets/Scripts/Server Assets/Tests/EditMode README.md docs/07-development/phase-05-gameplay-loop.md .superpowers/sdd/2026-09-20-phase-05-gameplay-loop/task-8-report.md
+```
+
+Result: no whitespace-error lines were reported. Git printed CRLF normalization warnings for intended edited files.
+
+Docs: no docs beyond this `task-8-report.md` needed changes.
+
+Concern: the existing load-runner smoke report can still contain `Phase 05 finalization hook unavailable.` because the Editor load-runner disables `ServerBootstrap` while preparing the local `NetworkManager`; this is now covered by the explicit EditMode finalization regression that exercises `GameServerBootstrap.FinalizeMatchForLoadRunner()` directly.

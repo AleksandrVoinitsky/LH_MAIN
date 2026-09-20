@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using LH.Main.Unity.Gameplay;
@@ -234,6 +235,53 @@ public sealed class GameServerAdmissionTransportTests
 public sealed class GameServerBootstrapAdmissionReflectionTests
 {
     [Test]
+    public async Task FinalizeMatchForLoadRunnerSubmitsMixedRuntimeSnapshotWithSupportedRewards()
+    {
+        Guid matchId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+        Guid extractedPlayerId = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
+        Guid deadPlayerId = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc");
+        Guid disconnectedPlayerId = Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd");
+        var registry = new ServerPlayerRegistry();
+        registry.RegisterAcceptedConnection(7, matchId, extractedPlayerId);
+        registry.RegisterAcceptedConnection(8, matchId, deadPlayerId);
+        registry.RegisterAcceptedConnection(9, matchId, disconnectedPlayerId);
+        registry.TryGetPlayerState(extractedPlayerId, out PlayerStateMachine extractedState);
+        registry.TryGetPlayerState(deadPlayerId, out PlayerStateMachine deadState);
+        extractedState.TryExtract();
+        deadState.ApplyDamage(new TechnicalDamageEvent(Guid.Parse("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"), null, deadPlayerId, 130, "test"));
+        registry.RemoveConnection(9);
+        var sender = new BackendRuleRecordingSender();
+        var submitter = new MatchResultSubmitter("http://backend:8080", "shared-key", TimeSpan.FromSeconds(3), sender);
+        GameObject gameObject = new GameObject("bootstrap-finalize-test");
+        gameObject.SetActive(false);
+
+        try
+        {
+            var bootstrap = gameObject.AddComponent<GameServerBootstrap>();
+            SetPrivateField(bootstrap, "_config", new GameServerConfig("game-server-1", 8081, 7771, "localhost", 7771, "http://backend:8080", "shared-key", 3));
+            SetPrivateField(bootstrap, "_playerRegistry", registry);
+            SetPrivateField(bootstrap, "_matchResultSubmitter", submitter);
+
+            bootstrap.FinalizeMatchForLoadRunner();
+            Task completed = await Task.WhenAny(sender.BodyReceived, Task.Delay(TimeSpan.FromSeconds(3)));
+
+            Assert.That(completed, Is.SameAs(sender.BodyReceived));
+            Assert.That(sender.AcceptedResponseIssued, Is.True);
+            Assert.That(sender.SharedKeyHeader, Is.EqualTo("shared-key"));
+            Assert.That(sender.Body, Does.Contain("\"outcome\":\"extracted\""));
+            Assert.That(sender.Body, Does.Contain("\"outcome\":\"dead\""));
+            Assert.That(sender.Body, Does.Contain("\"outcome\":\"disconnected\""));
+            Assert.That(sender.RewardCodes.Length, Is.EqualTo(3));
+            foreach (string rewardCode in sender.RewardCodes)
+                Assert.That(rewardCode, Is.EqualTo(MatchResultBuilder.ExtractedRewardCode));
+        }
+        finally
+        {
+            UnityEngine.Object.DestroyImmediate(gameObject);
+        }
+    }
+
+    [Test]
     public void ApplyTechnicalDamageForLoadRunnerRecordsMetricsThroughRegistry()
     {
         Guid matchId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
@@ -313,6 +361,66 @@ public sealed class GameServerBootstrapAdmissionReflectionTests
         bool configured = (bool)method.Invoke(null, arguments);
         error = (string)arguments[3];
         return configured;
+    }
+
+    private static void SetPrivateField(object target, string fieldName, object value)
+    {
+        FieldInfo field = typeof(GameServerBootstrap).GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
+        Assert.That(field, Is.Not.Null);
+        field.SetValue(target, value);
+    }
+
+    private sealed class BackendRuleRecordingSender : IMatchResultSender
+    {
+        private readonly TaskCompletionSource<string> _bodyReceived = new TaskCompletionSource<string>();
+
+        public Task<string> BodyReceived => _bodyReceived.Task;
+        public string Body { get; private set; }
+        public string SharedKeyHeader { get; private set; }
+        public bool AcceptedResponseIssued { get; private set; }
+        public string[] RewardCodes { get; private set; }
+
+        public Task<MatchResultSubmissionResponse> SendAsync(Uri endpoint, string sharedKey, string body, CancellationToken cancellationToken)
+        {
+            Body = body;
+            SharedKeyHeader = sharedKey;
+            RewardCodes = ReadRewardCodes(body);
+            AcceptedResponseIssued = RewardCodes.Length == 3 && AllRewardCodesSupported(RewardCodes);
+            _bodyReceived.TrySetResult(body);
+
+            string resultId = ReadJsonString(body, "resultId");
+            string response = AcceptedResponseIssued
+                ? "{\"accepted\":true,\"resultId\":\"" + resultId + "\",\"newRewardTransactions\":3,\"duplicate\":false}"
+                : "{\"accepted\":false}";
+            return Task.FromResult(new MatchResultSubmissionResponse(AcceptedResponseIssued ? 200 : 400, response));
+        }
+
+        private static string[] ReadRewardCodes(string body)
+        {
+            MatchCollection matches = Regex.Matches(body ?? string.Empty, "\\\"rewardCode\\\"\\s*:\\s*\\\"([^\\\"]*)\\\"");
+            var rewardCodes = new string[matches.Count];
+            for (int index = 0; index < matches.Count; index++)
+                rewardCodes[index] = matches[index].Groups[1].Value;
+
+            return rewardCodes;
+        }
+
+        private static bool AllRewardCodesSupported(string[] rewardCodes)
+        {
+            foreach (string rewardCode in rewardCodes)
+            {
+                if (rewardCode != MatchResultBuilder.ExtractedRewardCode)
+                    return false;
+            }
+
+            return true;
+        }
+
+        private static string ReadJsonString(string body, string name)
+        {
+            Match match = Regex.Match(body ?? string.Empty, "\\\"" + Regex.Escape(name) + "\\\"\\s*:\\s*\\\"([^\\\"]*)\\\"");
+            return match.Success ? match.Groups[1].Value : string.Empty;
+        }
     }
 
     private sealed class MissingConfigureComponent : MonoBehaviour
