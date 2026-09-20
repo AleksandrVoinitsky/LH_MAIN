@@ -67,6 +67,18 @@ public sealed class NetworkPlayerControllerTests
             typeof(Guid),
             typeof(Vector3),
             typeof(Vector3));
+        AssertServerHelper(
+            nameof(NetworkPlayerController.ApplyServerReloadForTest),
+            typeof(WeaponFireResult),
+            typeof(CoreMatchRuntime),
+            typeof(Guid));
+        AssertServerHelper(
+            nameof(NetworkPlayerController.ApplyServerThrowGrenadeForTest),
+            typeof(InventoryTransactionResult),
+            typeof(CoreMatchRuntime),
+            typeof(Guid),
+            typeof(Vector3),
+            typeof(Vector3));
     }
 
     [Test]
@@ -167,6 +179,76 @@ public sealed class NetworkPlayerControllerTests
         {
             if (target != null)
                 UnityEngine.Object.DestroyImmediate(target);
+            UnityEngine.Object.DestroyImmediate(gameObject);
+        }
+    }
+
+    [Test]
+    public void FireHelperUsesServerTransformInsteadOfClientOrigin()
+    {
+        var gameObject = new GameObject("network-player-controller-authority-test");
+        GameObject target = null;
+
+        try
+        {
+            NetworkObject networkObject = gameObject.AddComponent<NetworkObject>();
+            var controller = gameObject.AddComponent<NetworkPlayerController>();
+            InitializeServerNetworkObjectForTest(controller, networkObject);
+            var runtime = new CoreMatchRuntime();
+            Guid sourcePlayerId = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc");
+            Guid targetPlayerId = Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd");
+            runtime.RegisterPlayer(sourcePlayerId);
+            runtime.RegisterPlayer(targetPlayerId);
+            gameObject.transform.position = Vector3.zero;
+            controller.ConfigureCoreMatchRuntimeForTest(runtime, sourcePlayerId);
+            target = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            target.transform.position = new Vector3(1000f, 0f, 1000f);
+            target.AddComponent<BodyZoneHitbox>().ConfigureForTest(targetPlayerId, BodyZone.Head);
+            Physics.SyncTransforms();
+
+            WeaponFireResult fire = controller.ApplyServerFireForTest(runtime, Guid.NewGuid(), new Vector3(1000f, 0f, 995f), Vector3.forward);
+
+            Assert.That(fire.Accepted, Is.True);
+            Assert.That(fire.Hit, Is.False);
+        }
+        finally
+        {
+            if (target != null)
+                UnityEngine.Object.DestroyImmediate(target);
+            UnityEngine.Object.DestroyImmediate(gameObject);
+        }
+    }
+
+    [Test]
+    public void ReloadAndGrenadeRejectionsAreRecordedInMetrics()
+    {
+        var gameObject = new GameObject("network-player-controller-rejection-metric-test");
+
+        try
+        {
+            NetworkObject networkObject = gameObject.AddComponent<NetworkObject>();
+            var controller = gameObject.AddComponent<NetworkPlayerController>();
+            InitializeServerNetworkObjectForTest(controller, networkObject);
+            var runtime = new CoreMatchRuntime();
+            Guid playerId = Guid.Parse("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee");
+            runtime.RegisterPlayer(playerId);
+            controller.ConfigureCoreMatchRuntimeForTest(runtime, playerId);
+            GameServerMetrics.Snapshot before = GameServerMetrics.GetSnapshot();
+
+            WeaponFireResult reload = controller.ApplyServerReloadForTest(runtime, Guid.NewGuid());
+            InventoryTransactionResult firstThrow = controller.ApplyServerThrowGrenadeForTest(runtime, Guid.NewGuid(), Vector3.zero, Vector3.forward);
+            InventoryTransactionResult rejectedThrow = controller.ApplyServerThrowGrenadeForTest(runtime, Guid.NewGuid(), Vector3.zero, Vector3.forward);
+            GameServerMetrics.Snapshot after = GameServerMetrics.GetSnapshot();
+
+            Assert.That(reload.Accepted, Is.False);
+            Assert.That(reload.Reason, Is.EqualTo("reload_not_needed"));
+            Assert.That(firstThrow.Accepted, Is.True);
+            Assert.That(rejectedThrow.Accepted, Is.False);
+            Assert.That(after.RejectedFireRequests, Is.EqualTo(before.RejectedFireRequests + 1));
+            Assert.That(after.RejectedPickupAttempts, Is.EqualTo(before.RejectedPickupAttempts + 1));
+        }
+        finally
+        {
             UnityEngine.Object.DestroyImmediate(gameObject);
         }
     }

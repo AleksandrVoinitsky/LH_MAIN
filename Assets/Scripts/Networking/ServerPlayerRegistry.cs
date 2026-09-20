@@ -41,7 +41,7 @@ namespace LH.Main.Unity.Networking
             _playersByPlayerId[playerId] = registeredPlayer;
             _playersByConnectionId.Add(connectionId, new AcceptedPlayer(connectionId, matchId, playerId, acceptedAtUtc));
             _connectionIdsByPlayerId.Add(playerId, connectionId);
-            _coreMatchRuntime?.RegisterPlayer(playerId);
+            _coreMatchRuntime?.RegisterPlayer(playerId, registeredPlayer.StateMachine);
             GameServerMetrics.SetActiveConnectionCount(ActivePlayerCount);
             return true;
         }

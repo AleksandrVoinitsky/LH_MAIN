@@ -47,13 +47,30 @@ namespace LH.Main.Unity.Gameplay
 
         public void RegisterPlayer(Guid playerId)
         {
+            RegisterPlayer(playerId, PlayerStateMachine.Create(playerId));
+        }
+
+        public void RegisterPlayer(Guid playerId, PlayerStateMachine stateMachine)
+        {
             if (playerId == Guid.Empty || _players.ContainsKey(playerId))
+                return;
+
+            if (stateMachine == null || stateMachine.PlayerId != playerId)
                 return;
 
             var inventory = new PlayerInventory(InventorySlots);
             inventory.TryAdd(_itemDefinitions[MedItemId], 1, Guid.NewGuid());
             inventory.TryAdd(_itemDefinitions[GrenadeItemId], 1, Guid.NewGuid());
-            _players.Add(playerId, new PlayerRuntime(inventory, PlayerStateMachine.Create(playerId), new WeaponRuntime(WeaponDefinition.BaselineRifle())));
+            _players.Add(playerId, new PlayerRuntime(inventory, stateMachine, new WeaponRuntime(WeaponDefinition.BaselineRifle())));
+        }
+
+        public bool UpdatePlayerPosition(Guid playerId, Vector3 position)
+        {
+            if (!IsFinite(position) || !_players.TryGetValue(playerId, out PlayerRuntime player))
+                return false;
+
+            player.Position = position;
+            return true;
         }
 
         public InventoryTransactionResult TryPickup(Guid playerId, Guid lootId, Guid transactionId, Vector3 playerPosition)
@@ -94,16 +111,15 @@ namespace LH.Main.Unity.Gameplay
             if (!TryGetActivePlayer(playerId, out PlayerRuntime player, out WeaponFireResult rejection))
                 return rejection;
 
-            if (!IsFinite(origin) || !IsFinite(direction) || direction.sqrMagnitude <= 0.0000001f)
+            if (!IsFinite(direction) || direction.sqrMagnitude <= 0.0000001f)
                 return new WeaponFireResult(false, "fire_rejected", player.Weapon.State);
 
-            player.Position = origin;
             WeaponFireResult result = player.Weapon.TryFire(request, serverTimeSeconds);
             if (!result.Accepted)
                 return result;
 
             bool hit = ServerRaycastWeaponResolver.TryResolveDamage(
-                origin,
+                player.Position,
                 direction,
                 player.Weapon.Definition.MaxRange,
                 Physics.DefaultRaycastLayers,
@@ -124,15 +140,14 @@ namespace LH.Main.Unity.Gameplay
             if (!TryGetActivePlayer(playerId, out PlayerRuntime player, out InventoryTransactionResult rejection))
                 return rejection;
 
-            if (!IsFinite(origin) || !IsFinite(direction) || direction.sqrMagnitude <= 0.0000001f)
+            if (!IsFinite(direction) || direction.sqrMagnitude <= 0.0000001f)
                 return InventoryTransactionResult.Rejected("grenade_rejected");
 
             InventoryTransactionResult remove = player.Inventory.TryRemove(GrenadeItemId, 1, transactionId);
             if (!remove.Accepted)
                 return remove.Reason == "item_not_found" ? InventoryTransactionResult.Rejected("item_not_owned") : remove;
 
-            player.Position = origin;
-            _activeGrenades.Add(new GrenadeRuntime(new GrenadeThrowRequest(transactionId, playerId, origin, direction), _grenadeDefinition, serverTimeSeconds));
+            _activeGrenades.Add(new GrenadeRuntime(new GrenadeThrowRequest(transactionId, playerId, player.Position, direction), _grenadeDefinition, serverTimeSeconds));
             return remove;
         }
 
@@ -180,7 +195,7 @@ namespace LH.Main.Unity.Gameplay
                 if (player.Value.State.LifeState.IsTerminal())
                     continue;
 
-                bool isInsideSafeVolume = _safeZoneVolume == null || _safeZoneVolume.Contains(player.Value.Position);
+                bool isInsideSafeVolume = _safeZoneVolume != null && _safeZoneVolume.Contains(player.Value.Position);
                 if (_zone.ShouldApplyDamage(player.Key, isInsideSafeVolume, elapsedSeconds))
                 {
                     if (ApplyTechnicalDamage(player.Key, activePhase.DamagePerTick, "zone", Guid.NewGuid()))

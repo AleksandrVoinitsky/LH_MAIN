@@ -154,6 +154,25 @@ public sealed class ServerPlayerRegistryTests
         Assert.That(registered, Is.True);
         Assert.That(fire.Accepted, Is.True);
     }
+
+    [Test]
+    public void RuntimeDamageIsReflectedInRegistryResultSnapshots()
+    {
+        var runtime = new CoreMatchRuntime();
+        var registry = new ServerPlayerRegistry(runtime);
+        registry.RegisterAcceptedConnection(7, MatchId, PlayerId);
+
+        double now = Time.realtimeSinceStartupAsDouble;
+        for (int i = 1; i <= 30; i++)
+            runtime.Tick(now + i);
+
+        var results = registry.SnapshotResults(DateTime.UtcNow);
+
+        Assert.That(results, Has.Count.EqualTo(1));
+        Assert.That(results[0].LifeState, Is.EqualTo(PlayerLifeState.Dead));
+        Assert.That(results[0].DamageTaken, Is.GreaterThanOrEqualTo(100));
+        Assert.That(GameServerMetrics.GetSnapshot().DeadPlayers, Is.GreaterThanOrEqualTo(1));
+    }
 }
 
 public sealed class GameServerAuthenticatorTests

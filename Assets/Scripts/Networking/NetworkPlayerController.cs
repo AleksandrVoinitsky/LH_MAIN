@@ -64,23 +64,19 @@ namespace LH.Main.Unity.Networking
         [ServerRpc]
         public void ServerReloadWeapon(System.Guid requestId)
         {
-            CoreMatchRuntime runtime = ResolveRuntime();
-            if (runtime == null || !TryResolvePlayerId(out System.Guid playerId))
-                return;
-
-            runtime.TryReload(playerId, requestId, Time.realtimeSinceStartupAsDouble);
+            WeaponFireResult result = ApplyServerReload(ResolveRuntime(), requestId);
+            if (!result.Accepted)
+                GameServerMetrics.RecordFireRejected(result.Reason);
         }
 
         [ServerRpc]
         public void ServerThrowGrenade(System.Guid transactionId, Vector3 origin, Vector3 direction)
         {
-            CoreMatchRuntime runtime = ResolveRuntime();
-            if (runtime == null || !TryResolvePlayerId(out System.Guid playerId))
-                return;
-
-            InventoryTransactionResult result = runtime.TryThrowGrenade(playerId, transactionId, origin, direction, Time.realtimeSinceStartupAsDouble);
+            InventoryTransactionResult result = ApplyServerThrowGrenade(ResolveRuntime(), transactionId, origin, direction);
             if (result.Accepted)
                 GameServerMetrics.RecordGrenadeThrown();
+            else
+                GameServerMetrics.RecordPickupRejected(result.Reason);
         }
 
         public static void ConfigureServerCoreRuntime(CoreMatchRuntime runtime, ServerPlayerRegistry playerRegistry)
@@ -112,6 +108,28 @@ namespace LH.Main.Unity.Networking
         public WeaponFireResult ApplyServerFireForTest(CoreMatchRuntime runtime, System.Guid requestId, Vector3 origin, Vector3 direction)
         {
             return ApplyServerFire(runtime, requestId, origin, direction);
+        }
+
+        [Server]
+        public WeaponFireResult ApplyServerReloadForTest(CoreMatchRuntime runtime, System.Guid requestId)
+        {
+            WeaponFireResult result = ApplyServerReload(runtime, requestId);
+            if (!result.Accepted)
+                GameServerMetrics.RecordFireRejected(result.Reason);
+
+            return result;
+        }
+
+        [Server]
+        public InventoryTransactionResult ApplyServerThrowGrenadeForTest(CoreMatchRuntime runtime, System.Guid transactionId, Vector3 origin, Vector3 direction)
+        {
+            InventoryTransactionResult result = ApplyServerThrowGrenade(runtime, transactionId, origin, direction);
+            if (result.Accepted)
+                GameServerMetrics.RecordGrenadeThrown();
+            else
+                GameServerMetrics.RecordPickupRejected(result.Reason);
+
+            return result;
         }
 
         [Server]
@@ -177,7 +195,35 @@ namespace LH.Main.Unity.Networking
 
             return LifeState.IsTerminal()
                 ? new WeaponFireResult(false, "state_terminal", default)
-                : runtime.TryFire(playerId, new WeaponFireRequest(requestId), origin, direction, Time.realtimeSinceStartupAsDouble);
+                : ApplyServerPositionAndFire(runtime, playerId, requestId, direction);
+        }
+
+        private WeaponFireResult ApplyServerReload(CoreMatchRuntime runtime, System.Guid requestId)
+        {
+            if (runtime == null || !TryResolvePlayerId(out System.Guid playerId))
+                return new WeaponFireResult(false, "player_not_registered", default);
+
+            return LifeState.IsTerminal()
+                ? new WeaponFireResult(false, "state_terminal", default)
+                : runtime.TryReload(playerId, requestId, Time.realtimeSinceStartupAsDouble);
+        }
+
+        private InventoryTransactionResult ApplyServerThrowGrenade(CoreMatchRuntime runtime, System.Guid transactionId, Vector3 origin, Vector3 direction)
+        {
+            if (runtime == null || !TryResolvePlayerId(out System.Guid playerId))
+                return InventoryTransactionResult.Rejected("player_not_registered");
+
+            if (LifeState.IsTerminal())
+                return InventoryTransactionResult.Rejected("state_terminal");
+
+            runtime.UpdatePlayerPosition(playerId, transform.position);
+            return runtime.TryThrowGrenade(playerId, transactionId, transform.position, direction, Time.realtimeSinceStartupAsDouble);
+        }
+
+        private WeaponFireResult ApplyServerPositionAndFire(CoreMatchRuntime runtime, System.Guid playerId, System.Guid requestId, Vector3 direction)
+        {
+            runtime.UpdatePlayerPosition(playerId, transform.position);
+            return runtime.TryFire(playerId, new WeaponFireRequest(requestId), transform.position, direction, Time.realtimeSinceStartupAsDouble);
         }
 
         private CoreMatchRuntime ResolveRuntime()

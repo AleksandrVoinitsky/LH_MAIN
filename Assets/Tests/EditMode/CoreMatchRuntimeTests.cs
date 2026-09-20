@@ -63,6 +63,69 @@ public sealed class CoreMatchRuntimeTests
         Assert.That(runtime.LastTickZoneDamageTicks, Is.EqualTo(1));
     }
 
+    [Test]
+    public void TryFireUsesAuthoritativePlayerPositionInsteadOfClientOrigin()
+    {
+        var sourcePlayerId = Guid.Parse("44444444-4444-4444-4444-444444444444");
+        var targetPlayerId = Guid.Parse("55555555-5555-5555-5555-555555555555");
+        var runtime = new CoreMatchRuntime();
+        runtime.RegisterPlayer(sourcePlayerId);
+        runtime.RegisterPlayer(targetPlayerId);
+        runtime.UpdatePlayerPosition(sourcePlayerId, Vector3.zero);
+        runtime.UpdatePlayerPosition(targetPlayerId, new Vector3(1000f, 0f, 1000f));
+        CreateHitboxTarget(targetPlayerId, BodyZone.Head, new Vector3(1000f, 0f, 1000f));
+
+        WeaponFireResult fire = runtime.TryFire(
+            sourcePlayerId,
+            new WeaponFireRequest(Guid.NewGuid()),
+            new Vector3(1000f, 0f, 995f),
+            Vector3.forward,
+            100d);
+
+        Assert.That(fire.Accepted, Is.True);
+        Assert.That(fire.Hit, Is.False);
+    }
+
+    [Test]
+    public void TryThrowGrenadeUsesAuthoritativePlayerPositionInsteadOfClientOrigin()
+    {
+        var sourcePlayerId = Guid.Parse("66666666-6666-6666-6666-666666666666");
+        var targetPlayerId = Guid.Parse("77777777-7777-7777-7777-777777777777");
+        var runtime = new CoreMatchRuntime();
+        runtime.RegisterPlayer(sourcePlayerId);
+        runtime.RegisterPlayer(targetPlayerId);
+        runtime.ConfigureZoneVolume(CreateSafeVolume(new Vector3(500f, 0f, 500f), new Vector3(2000f, 10f, 2000f)));
+        runtime.UpdatePlayerPosition(sourcePlayerId, Vector3.zero);
+        runtime.UpdatePlayerPosition(targetPlayerId, new Vector3(1000f, 0f, 1000f));
+
+        InventoryTransactionResult thrown = runtime.TryThrowGrenade(
+            sourcePlayerId,
+            Guid.NewGuid(),
+            new Vector3(996f, 0f, 1000f),
+            Vector3.right,
+            100d);
+        runtime.Tick(103.2d);
+        InventoryTransactionResult med = runtime.TryUseMed(targetPlayerId, "med_basic", Guid.NewGuid(), 104d);
+
+        Assert.That(thrown.Accepted, Is.True);
+        Assert.That(med.Accepted, Is.False);
+        Assert.That(med.Reason, Is.EqualTo("healing_not_needed"));
+    }
+
+    [Test]
+    public void DefaultRuntimeZoneDamagesPlayersAndEnablesMedCoverageWithoutSceneVolume()
+    {
+        var playerId = Guid.Parse("88888888-8888-8888-8888-888888888888");
+        var runtime = new CoreMatchRuntime();
+        runtime.RegisterPlayer(playerId);
+
+        runtime.Tick(Time.realtimeSinceStartupAsDouble + 1d);
+        InventoryTransactionResult med = runtime.TryUseMed(playerId, "med_basic", Guid.NewGuid(), Time.realtimeSinceStartupAsDouble + 2d);
+
+        Assert.That(runtime.LastTickZoneDamageTicks, Is.EqualTo(1));
+        Assert.That(med.Accepted, Is.True);
+    }
+
     private void CreateHitboxTarget(Guid playerId, BodyZone bodyZone, Vector3 position)
     {
         GameObject target = GameObject.CreatePrimitive(PrimitiveType.Cube);
