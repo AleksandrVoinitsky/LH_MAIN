@@ -19,6 +19,12 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 
     public DbSet<MatchTicket> MatchTickets => Set<MatchTicket>();
 
+    public DbSet<MatchResult> MatchResults => Set<MatchResult>();
+
+    public DbSet<MatchResultParticipant> MatchResultParticipants => Set<MatchResultParticipant>();
+
+    public DbSet<RewardTransaction> RewardTransactions => Set<RewardTransaction>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>(entity =>
@@ -149,6 +155,53 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
                 .HasForeignKey(ticket => ticket.ServerId)
                 .HasConstraintName("fk_match_tickets_game_server_slots_server_id")
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<MatchResult>(entity =>
+        {
+            entity.ToTable("match_results");
+            entity.HasKey(result => result.Id).HasName("pk_match_results");
+            entity.Property(result => result.Id).HasColumnName("id");
+            entity.Property(result => result.MatchId).HasColumnName("match_id").IsRequired();
+            entity.Property(result => result.ServerId).HasColumnName("server_id").HasMaxLength(128).IsRequired();
+            entity.Property(result => result.CompletedAtUtc).HasColumnName("completed_at_utc").IsRequired();
+            entity.Property(result => result.ReceivedAtUtc).HasColumnName("received_at_utc").IsRequired();
+            entity.Property(result => result.PayloadHash).HasColumnName("payload_hash").HasMaxLength(128).IsRequired();
+            entity.HasIndex(result => result.MatchId).HasDatabaseName("ix_match_results_match_id").IsUnique();
+            entity.HasOne<MatchSession>().WithMany().HasForeignKey(result => result.MatchId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<MatchResultParticipant>(entity =>
+        {
+            entity.ToTable("match_result_participants");
+            entity.HasKey(participant => participant.Id).HasName("pk_match_result_participants");
+            entity.Property(participant => participant.Id).HasColumnName("id");
+            entity.Property(participant => participant.MatchResultId).HasColumnName("match_result_id").IsRequired();
+            entity.Property(participant => participant.PlayerId).HasColumnName("player_id").IsRequired();
+            entity.Property(participant => participant.Outcome).HasColumnName("outcome").HasMaxLength(32).IsRequired();
+            entity.Property(participant => participant.SurvivedSeconds).HasColumnName("survived_seconds").IsRequired();
+            entity.Property(participant => participant.DamageTaken).HasColumnName("damage_taken").IsRequired();
+            entity.Property(participant => participant.DamageApplied).HasColumnName("damage_applied").IsRequired();
+            entity.Property(participant => participant.RewardCode).HasColumnName("reward_code").HasMaxLength(64).IsRequired();
+            entity.HasIndex(participant => participant.MatchResultId).HasDatabaseName("ix_match_result_participants_match_result_id");
+            entity.HasOne<MatchResult>().WithMany().HasForeignKey(participant => participant.MatchResultId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<RewardTransaction>(entity =>
+        {
+            entity.ToTable("reward_transactions");
+            entity.HasKey(reward => reward.Id).HasName("pk_reward_transactions");
+            entity.Property(reward => reward.Id).HasColumnName("id");
+            entity.Property(reward => reward.PlayerId).HasColumnName("player_id").IsRequired();
+            entity.Property(reward => reward.MatchId).HasColumnName("match_id").IsRequired();
+            entity.Property(reward => reward.MatchResultId).HasColumnName("match_result_id").IsRequired();
+            entity.Property(reward => reward.RewardCode).HasColumnName("reward_code").HasMaxLength(64).IsRequired();
+            entity.Property(reward => reward.Amount).HasColumnName("amount").IsRequired();
+            entity.Property(reward => reward.CreatedAtUtc).HasColumnName("created_at_utc").IsRequired();
+            entity.HasIndex(reward => new { reward.PlayerId, reward.MatchResultId, reward.RewardCode })
+                .HasDatabaseName("ix_reward_transactions_player_result_reward")
+                .IsUnique();
+            entity.HasOne<MatchResult>().WithMany().HasForeignKey(reward => reward.MatchResultId).OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

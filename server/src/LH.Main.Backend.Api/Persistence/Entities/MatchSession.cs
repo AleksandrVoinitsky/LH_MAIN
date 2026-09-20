@@ -19,5 +19,6 @@ public static class MatchSessionStatuses
 {
     public const string Reserved = "reserved";
     public const string TicketValidated = "ticket_validated";
+    public const string Completed = "completed";
     public const string Expired = "expired";
 }
