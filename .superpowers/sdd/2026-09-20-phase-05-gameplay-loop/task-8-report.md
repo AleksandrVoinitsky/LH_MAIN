@@ -63,3 +63,21 @@ Result: `targetClients=64`, `connectedClients=64`, `spawnedClients=64`, `complet
 
 - `machineNotes` contains `Phase 05 finalization hook unavailable.` because the Editor load-runner disables `ServerBootstrap` when preparing the local `NetworkManager`. The backend result submission, duplicate submission check, and reward ledger evidence are still exercised by the load-runner payload.
 - No metric collection gaps were reported by the one-client or 64-client final reports.
+
+## Fix Round 1 Hygiene Evidence
+
+Command:
+
+```powershell
+git status --short
+```
+
+Output summary: the working tree still contains pre-existing unrelated local/generated changes, including `task-1-report.md`, Unity/FishNet `.meta` deletions, Unity settings/package/project settings modifications, local `.vsconfig`, Task 5/6 logs, and untracked superpowers plan/spec files. No Task 8 code or doc files were dirty before this report-only fix was applied.
+
+Command:
+
+```powershell
+git diff --check
+```
+
+Output summary: no whitespace-error lines were reported. Git printed CRLF normalization warnings for unrelated dirty files; no intended Task 8 files required whitespace fixes.
