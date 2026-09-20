@@ -26,5 +26,34 @@ namespace LH.Main.Unity.Gameplay
             bodyZone = hitbox.Zone;
             return true;
         }
+
+        public static bool TryResolveDamage(
+            Vector3 origin,
+            Vector3 direction,
+            float range,
+            LayerMask mask,
+            WeaponDefinition weaponDefinition,
+            BodyZoneDamageTable damageTable,
+            Guid? sourcePlayerId,
+            Guid correlationId,
+            out DamageEvent damageEvent,
+            out int calculatedDamage)
+        {
+            damageEvent = default;
+            calculatedDamage = 0;
+
+            if (weaponDefinition == null)
+                throw new ArgumentNullException(nameof(weaponDefinition));
+
+            if (damageTable == null)
+                throw new ArgumentNullException(nameof(damageTable));
+
+            if (!TryResolve(origin, direction, range, mask, out Guid targetPlayerId, out BodyZone bodyZone))
+                return false;
+
+            damageEvent = new DamageEvent(correlationId, sourcePlayerId, targetPlayerId, weaponDefinition.BaseDamage, bodyZone, "hitscan");
+            calculatedDamage = damageTable.CalculateDamage(weaponDefinition.BaseDamage, bodyZone);
+            return true;
+        }
     }
 }
