@@ -141,6 +141,19 @@ public sealed class ServerPlayerRegistryTests
         Assert.That(after.AcceptedDamageEvents, Is.EqualTo(before.AcceptedDamageEvents + 1));
         Assert.That(after.RejectedDamageEvents, Is.EqualTo(before.RejectedDamageEvents + 1));
     }
+
+    [Test]
+    public void RegisterAcceptedConnectionRegistersPlayerWithConfiguredCoreRuntime()
+    {
+        var runtime = new CoreMatchRuntime();
+        var registry = (ServerPlayerRegistry)Activator.CreateInstance(typeof(ServerPlayerRegistry), runtime);
+
+        bool registered = registry.RegisterAcceptedConnection(7, MatchId, PlayerId);
+        WeaponFireResult fire = runtime.TryFire(PlayerId, new WeaponFireRequest(Guid.NewGuid()), Vector3.zero, Vector3.forward, 10d);
+
+        Assert.That(registered, Is.True);
+        Assert.That(fire.Accepted, Is.True);
+    }
 }
 
 public sealed class GameServerAuthenticatorTests

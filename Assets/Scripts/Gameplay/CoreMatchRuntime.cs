@@ -24,6 +24,7 @@ namespace LH.Main.Unity.Gameplay
         private readonly EffectRuntime _effects = new EffectRuntime();
         private readonly ZoneRuntime _zone = new ZoneRuntime(new[] { new ZonePhase(0d, double.MaxValue, 5, 1d) });
         private readonly double _startedAtSeconds;
+        private ZoneVolume _safeZoneVolume;
 
         public CoreMatchRuntime()
         {
@@ -36,6 +37,11 @@ namespace LH.Main.Unity.Gameplay
 
         public int LastTickZoneDamageTicks { get; private set; }
         public int LastTickGrenadesExploded { get; private set; }
+
+        public void ConfigureZoneVolume(ZoneVolume safeZoneVolume)
+        {
+            _safeZoneVolume = safeZoneVolume;
+        }
 
         public void RegisterPlayer(Guid playerId)
         {
@@ -90,7 +96,25 @@ namespace LH.Main.Unity.Gameplay
                 return new WeaponFireResult(false, "fire_rejected", player.Weapon.State);
 
             player.Position = origin;
-            return player.Weapon.TryFire(request, serverTimeSeconds);
+            WeaponFireResult result = player.Weapon.TryFire(request, serverTimeSeconds);
+            if (!result.Accepted)
+                return result;
+
+            bool hit = ServerRaycastWeaponResolver.TryResolveDamage(
+                origin,
+                direction,
+                player.Weapon.Definition.MaxRange,
+                Physics.DefaultRaycastLayers,
+                player.Weapon.Definition,
+                _damageTable,
+                playerId,
+                request.RequestId,
+                out DamageEvent damage,
+                out _);
+            if (hit)
+                ApplyDamage(damage);
+
+            return new WeaponFireResult(true, string.Empty, result.State, hit);
         }
 
         public InventoryTransactionResult TryThrowGrenade(Guid playerId, Guid transactionId, Vector3 origin, Vector3 direction, double serverTimeSeconds)
@@ -145,14 +169,19 @@ namespace LH.Main.Unity.Gameplay
 
             LastTickZoneDamageTicks += _effects.Tick(serverTimeSeconds, ApplyTechnicalDamage);
             double elapsedSeconds = Math.Max(0d, serverTimeSeconds - _startedAtSeconds);
+            ZonePhase activePhase = _zone.GetActivePhase(elapsedSeconds);
+            if (activePhase == null)
+                return;
+
             foreach (KeyValuePair<Guid, PlayerRuntime> player in _players)
             {
                 if (player.Value.State.LifeState.IsTerminal())
                     continue;
 
-                if (_zone.ShouldApplyDamage(player.Key, isInsideSafeVolume: true, elapsedSeconds))
+                bool isInsideSafeVolume = _safeZoneVolume == null || _safeZoneVolume.Contains(player.Value.Position);
+                if (_zone.ShouldApplyDamage(player.Key, isInsideSafeVolume, elapsedSeconds))
                 {
-                    if (ApplyTechnicalDamage(player.Key, 5, "zone", Guid.NewGuid()))
+                    if (ApplyTechnicalDamage(player.Key, activePhase.DamagePerTick, "zone", Guid.NewGuid()))
                         LastTickZoneDamageTicks++;
                 }
             }

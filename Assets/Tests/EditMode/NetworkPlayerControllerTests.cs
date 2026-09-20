@@ -137,6 +137,42 @@ public sealed class NetworkPlayerControllerTests
         }
     }
 
+    [Test]
+    public void ServerFireWeaponRecordsHitscanHitMetricWhenRuntimeFireHitsTarget()
+    {
+        var gameObject = new GameObject("network-player-controller-fire-metric-test");
+        GameObject target = null;
+
+        try
+        {
+            var controller = gameObject.AddComponent<NetworkPlayerController>();
+            var runtime = new CoreMatchRuntime();
+            Guid sourcePlayerId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+            Guid targetPlayerId = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
+            runtime.RegisterPlayer(sourcePlayerId);
+            runtime.RegisterPlayer(targetPlayerId);
+            controller.ConfigureCoreMatchRuntimeForTest(runtime, sourcePlayerId);
+            target = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            target.transform.position = new Vector3(0f, 0f, 5f);
+            target.AddComponent<BodyZoneHitbox>().ConfigureForTest(targetPlayerId, BodyZone.Head);
+            Physics.SyncTransforms();
+            GameServerMetrics.Snapshot before = GameServerMetrics.GetSnapshot();
+
+            controller.ServerFireWeapon(Guid.NewGuid(), Vector3.zero, Vector3.forward);
+
+            GameServerMetrics.Snapshot after = GameServerMetrics.GetSnapshot();
+            Assert.That(after.AcceptedFireRequests, Is.EqualTo(before.AcceptedFireRequests + 1));
+            Assert.That(after.HitscanHits, Is.EqualTo(before.HitscanHits + 1));
+            Assert.That(after.HitscanMisses, Is.EqualTo(before.HitscanMisses));
+        }
+        finally
+        {
+            if (target != null)
+                UnityEngine.Object.DestroyImmediate(target);
+            UnityEngine.Object.DestroyImmediate(gameObject);
+        }
+    }
+
     private static void AssertServerRpc(string methodName, params Type[] parameterTypes)
     {
         MethodInfo method = typeof(NetworkPlayerController).GetMethod(methodName, parameterTypes);

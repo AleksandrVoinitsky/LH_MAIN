@@ -56,7 +56,7 @@ namespace LH.Main.Unity.Networking
         {
             WeaponFireResult result = ApplyServerFire(ResolveRuntime(), requestId, origin, direction);
             if (result.Accepted)
-                GameServerMetrics.RecordFireAccepted(hit: false);
+                GameServerMetrics.RecordFireAccepted(result.Hit);
             else
                 GameServerMetrics.RecordFireRejected(result.Reason);
         }
@@ -68,7 +68,6 @@ namespace LH.Main.Unity.Networking
             if (runtime == null || !TryResolvePlayerId(out System.Guid playerId))
                 return;
 
-            runtime.RegisterPlayer(playerId);
             runtime.TryReload(playerId, requestId, Time.realtimeSinceStartupAsDouble);
         }
 
@@ -79,7 +78,6 @@ namespace LH.Main.Unity.Networking
             if (runtime == null || !TryResolvePlayerId(out System.Guid playerId))
                 return;
 
-            runtime.RegisterPlayer(playerId);
             InventoryTransactionResult result = runtime.TryThrowGrenade(playerId, transactionId, origin, direction, Time.realtimeSinceStartupAsDouble);
             if (result.Accepted)
                 GameServerMetrics.RecordGrenadeThrown();
@@ -157,7 +155,6 @@ namespace LH.Main.Unity.Networking
             if (runtime == null || !TryResolvePlayerId(out System.Guid playerId))
                 return InventoryTransactionResult.Rejected("player_not_registered");
 
-            runtime.RegisterPlayer(playerId);
             return LifeState.IsTerminal()
                 ? InventoryTransactionResult.Rejected("state_terminal")
                 : runtime.TryPickup(playerId, lootId, transactionId, transform.position);
@@ -168,7 +165,6 @@ namespace LH.Main.Unity.Networking
             if (runtime == null || !TryResolvePlayerId(out System.Guid playerId))
                 return InventoryTransactionResult.Rejected("player_not_registered");
 
-            runtime.RegisterPlayer(playerId);
             return LifeState.IsTerminal()
                 ? InventoryTransactionResult.Rejected("state_terminal")
                 : runtime.TryUseMed(playerId, itemId, transactionId, Time.realtimeSinceStartupAsDouble);
@@ -179,7 +175,6 @@ namespace LH.Main.Unity.Networking
             if (runtime == null || !TryResolvePlayerId(out System.Guid playerId))
                 return new WeaponFireResult(false, "player_not_registered", default);
 
-            runtime.RegisterPlayer(playerId);
             return LifeState.IsTerminal()
                 ? new WeaponFireResult(false, "state_terminal", default)
                 : runtime.TryFire(playerId, new WeaponFireRequest(requestId), origin, direction, Time.realtimeSinceStartupAsDouble);

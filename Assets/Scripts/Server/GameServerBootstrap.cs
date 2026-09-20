@@ -51,8 +51,8 @@ namespace LH.Main.Unity.Server
 
                 _ticketValidator = Activator.CreateInstance(ticketValidatorType, _config);
                 _admissionAuthenticator = Activator.CreateInstance(admissionAuthenticatorType, _config.ServerId, _ticketValidator);
-                _playerRegistry = Activator.CreateInstance(playerRegistryType);
                 _coreMatchRuntime = new CoreMatchRuntime();
+                _playerRegistry = Activator.CreateInstance(playerRegistryType, _coreMatchRuntime);
                 _matchResultSubmitter = new MatchResultSubmitter(
                     _config.BackendBaseUrl,
                     _config.SharedKey,
@@ -110,6 +110,7 @@ namespace LH.Main.Unity.Server
                 if (!TryConfigureAdmissionAuthenticator(fishNetAuthenticatorComponent, _admissionAuthenticator, _playerRegistry, out string configureError))
                     throw new InvalidOperationException(configureError);
 
+                _coreMatchRuntime?.ConfigureZoneVolume(FindFirstObjectByType<ZoneVolume>());
                 TryConfigureCoreRuntime(_coreMatchRuntime, _playerRegistry);
 
                 _networkManager.ServerManager.SetAuthenticator((Authenticator)fishNetAuthenticatorComponent);

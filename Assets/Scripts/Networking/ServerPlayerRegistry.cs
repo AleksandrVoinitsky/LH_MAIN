@@ -10,6 +10,16 @@ namespace LH.Main.Unity.Networking
         private readonly Dictionary<Guid, int> _connectionIdsByPlayerId = new Dictionary<Guid, int>();
         private readonly Dictionary<Guid, RegisteredPlayer> _playersByPlayerId = new Dictionary<Guid, RegisteredPlayer>();
         private readonly HashSet<int> _spawnedConnectionIds = new HashSet<int>();
+        private readonly CoreMatchRuntime _coreMatchRuntime;
+
+        public ServerPlayerRegistry()
+        {
+        }
+
+        public ServerPlayerRegistry(CoreMatchRuntime coreMatchRuntime)
+        {
+            _coreMatchRuntime = coreMatchRuntime;
+        }
 
         public int ActivePlayerCount => _playersByConnectionId.Count;
         public int SpawnedPlayerCount => _spawnedConnectionIds.Count;
@@ -31,6 +41,7 @@ namespace LH.Main.Unity.Networking
             _playersByPlayerId[playerId] = registeredPlayer;
             _playersByConnectionId.Add(connectionId, new AcceptedPlayer(connectionId, matchId, playerId, acceptedAtUtc));
             _connectionIdsByPlayerId.Add(playerId, connectionId);
+            _coreMatchRuntime?.RegisterPlayer(playerId);
             GameServerMetrics.SetActiveConnectionCount(ActivePlayerCount);
             return true;
         }

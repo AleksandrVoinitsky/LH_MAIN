@@ -24,6 +24,7 @@ namespace LH.Main.Unity.Gameplay
         }
 
         public WeaponRuntimeState State => CurrentState();
+        public WeaponDefinition Definition => _definition;
 
         public WeaponFireResult TryFire(WeaponFireRequest request, double serverTimeSeconds)
         {
