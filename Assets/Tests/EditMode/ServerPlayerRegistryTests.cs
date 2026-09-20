@@ -234,6 +234,37 @@ public sealed class GameServerAdmissionTransportTests
 public sealed class GameServerBootstrapAdmissionReflectionTests
 {
     [Test]
+    public void ApplyTechnicalDamageForLoadRunnerRecordsMetricsThroughRegistry()
+    {
+        Guid matchId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+        Guid targetPlayerId = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
+        var registry = new ServerPlayerRegistry();
+        registry.RegisterAcceptedConnection(7, matchId, targetPlayerId);
+        GameObject gameObject = new GameObject("bootstrap-damage-test");
+        gameObject.SetActive(false);
+
+        try
+        {
+            var bootstrap = gameObject.AddComponent<GameServerBootstrap>();
+            FieldInfo registryField = typeof(GameServerBootstrap).GetField("_playerRegistry", BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.That(registryField, Is.Not.Null);
+            registryField.SetValue(bootstrap, registry);
+            GameServerMetrics.Snapshot before = GameServerMetrics.GetSnapshot();
+
+            bootstrap.ApplyTechnicalDamageForLoadRunner(targetPlayerId, 25, "load_runner");
+            bootstrap.ApplyTechnicalDamageForLoadRunner(Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc"), 25, "load_runner");
+            GameServerMetrics.Snapshot after = GameServerMetrics.GetSnapshot();
+
+            Assert.That(after.AcceptedDamageEvents, Is.EqualTo(before.AcceptedDamageEvents + 1));
+            Assert.That(after.RejectedDamageEvents, Is.EqualTo(before.RejectedDamageEvents + 1));
+        }
+        finally
+        {
+            UnityEngine.Object.DestroyImmediate(gameObject);
+        }
+    }
+
+    [Test]
     public void ConfigureAdmissionAuthenticatorFailsWhenConfigureMethodIsMissing()
     {
         GameObject gameObject = new GameObject("bootstrap-reflection-test");

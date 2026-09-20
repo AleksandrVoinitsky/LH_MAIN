@@ -194,3 +194,79 @@ Result: no whitespace errors; line-ending warnings only.
 
 - The technical damage entry point remains intentionally narrow and server-owned; no weapons, ballistics, or hit detection were added.
 - The no-`-quit` Unity rerun was required again to produce XML evidence.
+
+## Fix Round 2
+
+### What changed
+
+- Added `GameServerBootstrap.ApplyTechnicalDamageForLoadRunner(Guid targetPlayerId, int amount, string kind)` as the controlled server-owned runtime call-site for Task 6 damage metrics.
+- The bootstrap hook constructs a `TechnicalDamageEvent` and routes it through `ServerPlayerRegistry.ApplyTechnicalDamage(...)`; metric recording remains in the registry path.
+- Added `ApplyTechnicalDamageForLoadRunnerRecordsMetricsThroughRegistry` to prove the bootstrap call-site increments accepted and rejected damage metrics through the real registry path.
+- Preserved the previous status JSON test assertions for all seven exact camelCase gameplay-loop fields.
+
+### RED command/output
+
+Command:
+
+```powershell
+& "C:\Program Files\Unity\Hub\Editor\6000.3.14f1\Editor\Unity.exe" -batchmode -quit -projectPath "D:\LH_MAIN-phase-02" -runTests -testPlatform EditMode -testResults "D:\LH_MAIN-phase-02\task-6-fix2-red.xml" -logFile "D:\LH_MAIN-phase-02\Unity-Task6-Fix2-Red.log"
+```
+
+Output:
+
+```text
+Aborting batchmode due to failure:
+Scripts have compiler errors.
+```
+
+Expected failure evidence from `Unity-Task6-Fix2-Red.log`:
+
+```text
+Assets\Tests\EditMode\ServerPlayerRegistryTests.cs(254,23): error CS1061: 'GameServerBootstrap' does not contain a definition for 'ApplyTechnicalDamageForLoadRunner' and no accessible extension method 'ApplyTechnicalDamageForLoadRunner' accepting a first argument of type 'GameServerBootstrap' could be found (are you missing a using directive or an assembly reference?)
+Assets\Tests\EditMode\ServerPlayerRegistryTests.cs(255,23): error CS1061: 'GameServerBootstrap' does not contain a definition for 'ApplyTechnicalDamageForLoadRunner' and no accessible extension method 'ApplyTechnicalDamageForLoadRunner' accepting a first argument of type 'GameServerBootstrap' could be found (are you missing a using directive or an assembly reference?)
+Scripts have compiler errors.
+```
+
+### GREEN command/output
+
+The first GREEN command with `-quit` returned without producing `task-6-fix2-green.xml`, so I reran the same test args without `-quit` per controller ruling.
+
+Command:
+
+```powershell
+& "C:\Program Files\Unity\Hub\Editor\6000.3.14f1\Editor\Unity.exe" -batchmode -projectPath "D:\LH_MAIN-phase-02" -runTests -testPlatform EditMode -testResults "D:\LH_MAIN-phase-02\task-6-fix2-green.xml" -logFile "D:\LH_MAIN-phase-02\Unity-Task6-Fix2-Green-NoQuit.log"
+```
+
+Output evidence from `Unity-Task6-Fix2-Green-NoQuit.log`:
+
+```text
+Test run completed. Exiting with code 0 (Ok). Run completed.
+```
+
+XML evidence from `task-6-fix2-green.xml`:
+
+```xml
+<test-run id="2" testcasecount="75" result="Passed" total="75" passed="75" failed="0" inconclusive="0" skipped="0" asserts="0">
+```
+
+### Diff check
+
+Command:
+
+```powershell
+git diff --check -- Assets/Scripts/Networking Assets/Scripts/Server Assets/Tests/EditMode
+```
+
+Output:
+
+```text
+warning: in the working copy of 'Assets/Scripts/Server/GameServerBootstrap.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Tests/EditMode/ServerPlayerRegistryTests.cs', LF will be replaced by CRLF the next time Git touches it
+```
+
+Result: no whitespace errors; line-ending warnings only.
+
+### Fix round 2 concerns
+
+- No final weapons, ballistics, hit detection, client authority, production timers, backend changes, or load-runner/report docs changes were added.
+- The no-`-quit` Unity rerun was required again to produce XML evidence.

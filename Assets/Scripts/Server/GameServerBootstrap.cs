@@ -226,6 +226,21 @@ namespace LH.Main.Unity.Server
             _ = FinalizeMatchForLoadRunnerAsync();
         }
 
+        public void ApplyTechnicalDamageForLoadRunner(Guid targetPlayerId, int amount, string kind)
+        {
+            if (_playerRegistry == null)
+                return;
+
+            var damage = new TechnicalDamageEvent(Guid.NewGuid(), null, targetPlayerId, amount, kind ?? "load_runner");
+            MethodInfo? method = _playerRegistry.GetType().GetMethod(
+                "ApplyTechnicalDamage",
+                BindingFlags.Public | BindingFlags.Instance,
+                null,
+                new[] { typeof(TechnicalDamageEvent) },
+                null);
+            method?.Invoke(_playerRegistry, new object[] { damage });
+        }
+
         private async System.Threading.Tasks.Task FinalizeMatchForLoadRunnerAsync()
         {
             try
