@@ -1,4 +1,6 @@
 using System;
+using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using LH.Main.Unity.Gameplay;
@@ -21,6 +23,19 @@ public sealed class MatchResultSubmitterTests
         Assert.That(sender.SharedKeyHeader, Is.EqualTo("shared-key"));
     }
 
+    [Test]
+    public async Task HttpSenderWritesGameServerKeyHeader()
+    {
+        var handler = new RecordingHttpMessageHandler("{\"accepted\":false}");
+        var sender = new HttpClientMatchResultSender(handler);
+
+        await sender.SendAsync(new Uri("http://backend:8080/internal/v1/matches/results"), "shared-key", "{}", CancellationToken.None);
+
+        Assert.That(handler.Path, Is.EqualTo("/internal/v1/matches/results"));
+        Assert.That(handler.GameServerKeyHeader, Is.EqualTo("shared-key"));
+        Assert.That(handler.ContentType, Is.EqualTo("application/json"));
+    }
+
     private sealed class RecordingMatchResultSender : IMatchResultSender
     {
         private readonly int _statusCode;
@@ -40,6 +55,32 @@ public sealed class MatchResultSubmitterTests
             Path = endpoint.AbsolutePath;
             SharedKeyHeader = sharedKey;
             return Task.FromResult(new MatchResultSubmissionResponse(_statusCode, _body));
+        }
+    }
+
+    private sealed class RecordingHttpMessageHandler : HttpMessageHandler
+    {
+        private readonly string _responseBody;
+
+        public RecordingHttpMessageHandler(string responseBody)
+        {
+            _responseBody = responseBody;
+        }
+
+        public string Path { get; private set; }
+        public string GameServerKeyHeader { get; private set; }
+        public string ContentType { get; private set; }
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            Path = request.RequestUri.AbsolutePath;
+            GameServerKeyHeader = string.Join(",", request.Headers.GetValues("X-Game-Server-Key"));
+            ContentType = request.Content.Headers.ContentType.MediaType;
+            await request.Content.ReadAsStringAsync();
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(_responseBody)
+            };
         }
     }
 }

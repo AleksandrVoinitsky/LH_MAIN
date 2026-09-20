@@ -19,4 +19,15 @@ public sealed class MatchResultBuilderTests
         Assert.That(payload.Participants[0].RewardCode, Is.EqualTo("phase05_test_reward"));
         Assert.That(payload.ResultId, Is.Not.EqualTo(Guid.Empty));
     }
+
+    [Test]
+    public void ToJsonEscapesControlCharactersInStrings()
+    {
+        var payload = MatchResultPayload.EmptyForTests(Guid.Parse("11111111-1111-1111-1111-111111111111"), "server\n\t\u0001\"x\\");
+
+        string json = payload.ToJson();
+
+        Assert.That(json, Does.Contain("server\\n\\t\\u0001\\\"x\\\\"));
+        Assert.That(json, Does.Not.Contain("server\n"));
+    }
 }

@@ -113,7 +113,45 @@ namespace LH.Main.Unity.Gameplay
 
         private static string EscapeJson(string value)
         {
-            return (value ?? string.Empty).Replace("\\", "\\\\").Replace("\"", "\\\"");
+            if (string.IsNullOrEmpty(value))
+                return string.Empty;
+
+            var builder = new StringBuilder(value.Length);
+            foreach (char character in value)
+            {
+                switch (character)
+                {
+                    case '\\':
+                        builder.Append("\\\\");
+                        break;
+                    case '"':
+                        builder.Append("\\\"");
+                        break;
+                    case '\b':
+                        builder.Append("\\b");
+                        break;
+                    case '\f':
+                        builder.Append("\\f");
+                        break;
+                    case '\n':
+                        builder.Append("\\n");
+                        break;
+                    case '\r':
+                        builder.Append("\\r");
+                        break;
+                    case '\t':
+                        builder.Append("\\t");
+                        break;
+                    default:
+                        if (character < ' ')
+                            builder.Append("\\u" + ((int)character).ToString("x4"));
+                        else
+                            builder.Append(character);
+                        break;
+                }
+            }
+
+            return builder.ToString();
         }
     }
 

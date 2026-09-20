@@ -22,6 +22,11 @@ namespace LH.Main.Unity.Gameplay
         private readonly IMatchResultSender _sender;
         private readonly Action<string> _diagnosticSink;
 
+        public MatchResultSubmitter(string backendBaseUrl, string sharedKey, TimeSpan timeout)
+            : this(backendBaseUrl, sharedKey, timeout, new HttpClientMatchResultSender())
+        {
+        }
+
         public MatchResultSubmitter(string backendBaseUrl, string sharedKey, TimeSpan timeout, IMatchResultSender sender)
             : this(backendBaseUrl, sharedKey, timeout, sender, null)
         {
@@ -166,23 +171,41 @@ namespace LH.Main.Unity.Gameplay
             return true;
         }
 
-        private sealed class HttpClientMatchResultSender : IMatchResultSender
-        {
-            public async Task<MatchResultSubmissionResponse> SendAsync(Uri endpoint, string sharedKey, string body, CancellationToken cancellationToken)
-            {
-                using (var client = new HttpClient())
-                using (var request = new HttpRequestMessage(HttpMethod.Post, endpoint))
-                {
-                    request.Headers.TryAddWithoutValidation("X-Game-Server-Key", sharedKey ?? string.Empty);
-                    request.Content = new StringContent(body ?? string.Empty, Encoding.UTF8, "application/json");
+    }
 
-                    using (HttpResponseMessage response = await client.SendAsync(request, cancellationToken))
-                    {
-                        string responseBody = await response.Content.ReadAsStringAsync();
-                        return new MatchResultSubmissionResponse((int)response.StatusCode, responseBody);
-                    }
+    public sealed class HttpClientMatchResultSender : IMatchResultSender
+    {
+        private readonly HttpMessageHandler _handler;
+
+        public HttpClientMatchResultSender()
+            : this(null)
+        {
+        }
+
+        public HttpClientMatchResultSender(HttpMessageHandler handler)
+        {
+            _handler = handler;
+        }
+
+        public async Task<MatchResultSubmissionResponse> SendAsync(Uri endpoint, string sharedKey, string body, CancellationToken cancellationToken)
+        {
+            using (HttpClient client = CreateClient())
+            using (var request = new HttpRequestMessage(HttpMethod.Post, endpoint))
+            {
+                request.Headers.TryAddWithoutValidation("X-Game-Server-Key", sharedKey ?? string.Empty);
+                request.Content = new StringContent(body ?? string.Empty, Encoding.UTF8, "application/json");
+
+                using (HttpResponseMessage response = await client.SendAsync(request, cancellationToken))
+                {
+                    string responseBody = await response.Content.ReadAsStringAsync();
+                    return new MatchResultSubmissionResponse((int)response.StatusCode, responseBody);
                 }
             }
+        }
+
+        private HttpClient CreateClient()
+        {
+            return _handler == null ? new HttpClient() : new HttpClient(_handler, false);
         }
     }
 }

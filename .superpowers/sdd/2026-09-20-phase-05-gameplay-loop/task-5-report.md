@@ -124,3 +124,108 @@ No whitespace errors were reported.
 
 - Unity's `-quit` GREEN run did not produce XML in this environment. The no-`-quit` rerun produced `task-5-green.xml` and Editor log exit-code evidence.
 - `git diff --check` emitted CRLF normalization warnings for two modified tracked files, but no whitespace errors.
+
+## Fix Round 1
+
+### What Changed
+
+- Added a public `MatchResultSubmitter(string backendBaseUrl, string sharedKey, TimeSpan timeout)` constructor that creates the production HTTP sender.
+- Made `HttpClientMatchResultSender` a public Task 5 gameplay type so runtime wiring can intentionally construct it.
+- Added an injectable `HttpMessageHandler` constructor to `HttpClientMatchResultSender` for test coverage of the real request/header path without making network calls.
+- Added EditMode coverage that verifies the production HTTP sender writes `X-Game-Server-Key`, uses the match results endpoint path, and sends `application/json` content.
+- Improved `MatchResultPayload.ToJson()` string escaping for JSON control characters including newline, tab, backspace, form feed, carriage return, and other characters below U+0020.
+- Added EditMode coverage for control-character escaping in JSON output.
+
+### RED Evidence
+
+Command:
+
+```powershell
+& "C:\Program Files\Unity\Hub\Editor\6000.3.14f1\Editor\Unity.exe" -batchmode -quit -projectPath "D:\LH_MAIN-phase-02" -runTests -testPlatform EditMode -testResults "D:\LH_MAIN-phase-02\task-5-fix1-red.xml"
+```
+
+Output:
+
+```text
+Aborting batchmode due to failure:
+Scripts have compiler errors.
+```
+
+Editor log compiler evidence:
+
+```text
+Assets\Tests\EditMode\MatchResultSubmitterTests.cs(30,26): error CS0246: The type or namespace name 'HttpClientMatchResultSender' could not be found (are you missing a using directive or an assembly reference?)
+```
+
+`task-5-fix1-red.xml` was not generated because Unity aborted before test execution due to the expected missing public production sender type.
+
+### GREEN Evidence
+
+Initial command with `-quit` returned no console output and did not create XML:
+
+```powershell
+& "C:\Program Files\Unity\Hub\Editor\6000.3.14f1\Editor\Unity.exe" -batchmode -quit -projectPath "D:\LH_MAIN-phase-02" -runTests -testPlatform EditMode -testResults "D:\LH_MAIN-phase-02\task-5-fix1-green.xml"
+```
+
+Per controller ruling, reran without `-quit`:
+
+```powershell
+& "C:\Program Files\Unity\Hub\Editor\6000.3.14f1\Editor\Unity.exe" -batchmode -projectPath "D:\LH_MAIN-phase-02" -runTests -testPlatform EditMode -testResults "D:\LH_MAIN-phase-02\task-5-fix1-green.xml"
+```
+
+Editor log evidence:
+
+```text
+Saving results to: D:\LH_MAIN-phase-02\task-5-fix1-green.xml
+Test run completed. Exiting with code 0 (Ok). Run completed.
+```
+
+XML summary:
+
+```xml
+<test-run id="2" testcasecount="71" result="Passed" total="71" passed="71" failed="0" inconclusive="0" skipped="0" ...>
+```
+
+New test cases present in XML:
+
+```text
+MatchResultBuilderTests.ToJsonEscapesControlCharactersInStrings: Passed
+MatchResultSubmitterTests.HttpSenderWritesGameServerKeyHeader: Passed
+```
+
+Whitespace check command:
+
+```powershell
+git diff --check -- Assets/Scripts/Gameplay Assets/Scripts/Networking Assets/Tests/EditMode
+```
+
+Output:
+
+```text
+warning: in the working copy of 'Assets/Scripts/Gameplay/MatchResultModels.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Gameplay/MatchResultSubmitter.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Tests/EditMode/MatchResultBuilderTests.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Tests/EditMode/MatchResultSubmitterTests.cs', LF will be replaced by CRLF the next time Git touches it
+```
+
+No whitespace errors were reported.
+
+### Files Changed In Fix Round 1
+
+- `Assets/Scripts/Gameplay/MatchResultModels.cs`
+- `Assets/Scripts/Gameplay/MatchResultSubmitter.cs`
+- `Assets/Tests/EditMode/MatchResultBuilderTests.cs`
+- `Assets/Tests/EditMode/MatchResultSubmitterTests.cs`
+- `.superpowers/sdd/2026-09-20-phase-05-gameplay-loop/task-5-report.md`
+
+### Self-Review Findings
+
+- The submitter now has a production constructor path and an intentionally constructible HTTP sender.
+- The real HTTP sender path is tested without reaching the network by injecting a fake `HttpMessageHandler`.
+- `X-Game-Server-Key` is still transmitted but is not included in diagnostics or logs.
+- JSON escaping now covers control characters while keeping the existing manual JSON shape and Task 5 scope.
+
+### Issues Or Concerns
+
+- Unity still required the no-`-quit` rerun to generate GREEN XML evidence.
+- `git diff --check` still emits CRLF normalization warnings only; no whitespace errors.
