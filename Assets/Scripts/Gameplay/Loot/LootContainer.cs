@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace LH.Main.Unity.Gameplay.Loot
 {
-    public sealed class LootContainer
+    public sealed class LootContainer : MonoBehaviour
     {
         private readonly object _lock = new object();
         private readonly Dictionary<Guid, LootEntry> _loot = new Dictionary<Guid, LootEntry>();
@@ -43,6 +43,9 @@ namespace LH.Main.Unity.Gameplay.Loot
 
                 if (Vector3.Distance(playerPosition, entry.Position) > interactionRange)
                     return InventoryTransactionResult.Rejected("interaction_out_of_range");
+
+                if (definition.ItemId != entry.Stack.ItemId)
+                    return InventoryTransactionResult.Rejected("loot_item_mismatch");
 
                 InventoryTransactionResult result = inventory.TryAdd(definition, entry.Stack.Quantity, transactionId);
                 if (!result.Accepted)
