@@ -1,0 +1,116 @@
+using System;
+using System.Collections.Generic;
+using LH.Main.Unity.Gameplay;
+using LH.Main.Unity.Gameplay.Effects;
+using LH.Main.Unity.Gameplay.Items;
+using NUnit.Framework;
+
+public sealed class EffectRuntimeTests
+{
+    [Test]
+    public void TryUseMedItemConsumesOneItemAndAppliesHealing()
+    {
+        var playerId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var inventory = CreateInventoryWithMeds(2);
+        var state = PlayerStateMachine.Create(playerId);
+        state.ApplyDamage(new TechnicalDamageEvent(Guid.NewGuid(), null, playerId, 40, "technical"));
+        var runtime = new EffectRuntime();
+
+        InventoryTransactionResult result = runtime.TryUseMedItem(
+            playerId,
+            inventory,
+            state,
+            "med_small",
+            25,
+            10d,
+            Guid.Parse("22222222-2222-2222-2222-222222222222"));
+
+        Assert.That(result.Accepted, Is.True);
+        Assert.That(state.DamageTaken, Is.EqualTo(15));
+        Assert.That(GetQuantity(inventory, "med_small"), Is.EqualTo(1));
+    }
+
+    [Test]
+    public void TryUseMedItemRejectsCooldownBeforeConsumingInventory()
+    {
+        var playerId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var inventory = CreateInventoryWithMeds(2);
+        var state = PlayerStateMachine.Create(playerId);
+        state.ApplyDamage(new TechnicalDamageEvent(Guid.NewGuid(), null, playerId, 80, "technical"));
+        var runtime = new EffectRuntime();
+
+        runtime.TryUseMedItem(playerId, inventory, state, "med_small", 20, 20d, Guid.NewGuid());
+        InventoryTransactionResult result = runtime.TryUseMedItem(playerId, inventory, state, "med_small", 20, 20.5d, Guid.NewGuid());
+
+        Assert.That(result.Accepted, Is.False);
+        Assert.That(result.Reason, Is.EqualTo("med_cooldown"));
+        Assert.That(state.DamageTaken, Is.EqualTo(60));
+        Assert.That(GetQuantity(inventory, "med_small"), Is.EqualTo(1));
+    }
+
+    [Test]
+    public void TryUseMedItemRestoresInventoryWhenHealingIsRejected()
+    {
+        var playerId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var inventory = CreateInventoryWithMeds(1);
+        var state = PlayerStateMachine.Create(playerId);
+        var runtime = new EffectRuntime();
+
+        InventoryTransactionResult result = runtime.TryUseMedItem(playerId, inventory, state, "med_small", 20, 30d, Guid.NewGuid());
+
+        Assert.That(result.Accepted, Is.False);
+        Assert.That(result.Reason, Is.EqualTo("healing_not_needed"));
+        Assert.That(GetQuantity(inventory, "med_small"), Is.EqualTo(1));
+    }
+
+    [Test]
+    public void TickAppliesDueDamageOverTimeTicksUntilEffectExpires()
+    {
+        var playerId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var runtime = new EffectRuntime();
+        var applied = new List<int>();
+
+        runtime.AddDamageOverTime(playerId, 3, 1d, 12d);
+
+        int first = runtime.Tick(10d, (targetPlayerId, amount, kind, correlationId) =>
+        {
+            Assert.That(targetPlayerId, Is.EqualTo(playerId));
+            Assert.That(kind, Is.EqualTo("damage_over_time"));
+            Assert.That(correlationId, Is.Not.EqualTo(Guid.Empty));
+            applied.Add(amount);
+            return true;
+        });
+        int second = runtime.Tick(10.5d, (_, _, _, _) => throw new InvalidOperationException("not due"));
+        int third = runtime.Tick(11d, (_, amount, _, _) =>
+        {
+            applied.Add(amount);
+            return true;
+        });
+        int expired = runtime.Tick(12.1d, (_, _, _, _) => throw new InvalidOperationException("expired"));
+
+        Assert.That(first, Is.EqualTo(1));
+        Assert.That(second, Is.EqualTo(0));
+        Assert.That(third, Is.EqualTo(1));
+        Assert.That(expired, Is.EqualTo(0));
+        Assert.That(applied, Is.EqualTo(new[] { 3, 3 }));
+    }
+
+    private static PlayerInventory CreateInventoryWithMeds(int quantity)
+    {
+        var inventory = new PlayerInventory(2);
+        inventory.TryAdd(new ItemDefinition("med_small", ItemCategory.MedItem, 5, true), quantity, Guid.NewGuid());
+        return inventory;
+    }
+
+    private static int GetQuantity(PlayerInventory inventory, string itemId)
+    {
+        int quantity = 0;
+        foreach (InventorySlot slot in inventory.GetSlots())
+        {
+            if (!slot.IsEmpty && slot.Stack.ItemId == itemId)
+                quantity += slot.Stack.Quantity;
+        }
+
+        return quantity;
+    }
+}
