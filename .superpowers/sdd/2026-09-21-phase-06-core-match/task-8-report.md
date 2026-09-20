@@ -47,6 +47,9 @@ fix round 1 final verification:
 - Command: `dotnet test "D:\LH_MAIN\.worktrees\phase-06-core-match\server\LH.Main.Server.sln" --configuration Release`; result: passed, 67 total tests.
 - Command: `git diff --check`; result: passed with only CRLF conversion warnings.
 
+fix round 1 commit hashes:
+- `2ded35a` fix: complete core match runtime wiring
+
 fix round 1 self-review notes/concerns:
 - Full Unity EditMode verification still needs rerun once Unity Package Manager can resolve the project's packages in this worktree.
 - `CoreMatchRuntime` treats players as inside the safe zone when no ZoneVolume is configured, preserving no-zone-damage behavior for scenes that have not wired a safe volume.
