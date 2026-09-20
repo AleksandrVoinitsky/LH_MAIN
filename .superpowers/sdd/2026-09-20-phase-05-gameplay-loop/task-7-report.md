@@ -80,3 +80,85 @@ No whitespace errors were reported.
 
 - Unity EditMode with `-quit` repeatedly exited before writing XML; the required no-`-quit` rerun produced passing XML evidence.
 - The Phase 05 extraction branch is represented in the load-runner report/submitted result payload. No new server extraction hook was added because Task 7 scope forbids backend/service changes and existing Task 6 hooks expose only technical damage and finalization.
+
+# Fix Round 1 Report
+
+## What Changed
+
+- Added EditMode tests for Phase 05 finalization hook invocation/reporting and Phase 05 success gating on result submission plus duplicate idempotency.
+- Phase 05 mode now calls `GameServerBootstrap.FinalizeMatchForLoadRunner()` after bots complete and before result submission.
+- If the finalization hook is unavailable or throws, the report records a machine note and Phase 05 result submission is skipped, causing the Phase 05 success gate to fail.
+- Phase 05 run success now requires client completion, `ResultSubmitted == true`, and `DuplicateResultAccepted == true`; duplicate responses that create new rewards mark the report/run failed through `phase05_result_verification_failed`.
+
+## RED Test Command/Output
+
+Command with `-quit`:
+
+```powershell
+& "C:\Program Files\Unity\Hub\Editor\6000.3.14f1\Editor\Unity.exe" -batchmode -projectPath "D:\LH_MAIN-phase-02" -runTests -testPlatform EditMode -testResults ".superpowers/sdd/2026-09-20-phase-05-gameplay-loop/task-7-fix1-red.xml" -quit
+```
+
+Output:
+
+```text
+(no output; Unity exited before writing XML)
+```
+
+Rerun without `-quit` using the same full test args:
+
+```powershell
+& "C:\Program Files\Unity\Hub\Editor\6000.3.14f1\Editor\Unity.exe" -batchmode -projectPath "D:\LH_MAIN-phase-02" -runTests -testPlatform EditMode -testResults ".superpowers/sdd/2026-09-20-phase-05-gameplay-loop/task-7-fix1-red.xml"
+```
+
+XML evidence:
+
+```xml
+<test-run id="2" testcasecount="82" result="Failed(Child)" total="82" passed="80" failed="2" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-20 15:57:56Z" end-time="2026-09-20 15:57:59Z" duration="2,307982">
+```
+
+## GREEN Test Command/Output
+
+Command with `-quit`:
+
+```powershell
+& "C:\Program Files\Unity\Hub\Editor\6000.3.14f1\Editor\Unity.exe" -batchmode -projectPath "D:\LH_MAIN-phase-02" -runTests -testPlatform EditMode -testResults ".superpowers/sdd/2026-09-20-phase-05-gameplay-loop/task-7-fix1-green.xml" -quit
+```
+
+Output:
+
+```text
+(no output; Unity exited before writing XML)
+```
+
+Rerun without `-quit` using the same full test args:
+
+```powershell
+& "C:\Program Files\Unity\Hub\Editor\6000.3.14f1\Editor\Unity.exe" -batchmode -projectPath "D:\LH_MAIN-phase-02" -runTests -testPlatform EditMode -testResults ".superpowers/sdd/2026-09-20-phase-05-gameplay-loop/task-7-fix1-green.xml"
+```
+
+XML evidence:
+
+```xml
+<test-run id="2" testcasecount="82" result="Passed" total="82" passed="82" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-20 16:01:04Z" end-time="2026-09-20 16:01:06Z" duration="2,3511882">
+```
+
+## Diff-Check Command/Output
+
+Command:
+
+```powershell
+git diff --check -- Assets/Scripts/Load Assets/Scripts/Editor Assets/Tests/EditMode README.md docs/07-development/phase-05-gameplay-loop.md
+```
+
+Output:
+
+```text
+warning: in the working copy of 'Assets/Scripts/Editor/NetworkedCoreLoadRunner.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Tests/EditMode/NetworkedCoreLoadRunnerTests.cs', LF will be replaced by CRLF the next time Git touches it
+```
+
+No whitespace errors were reported.
+
+## Concerns
+
+- Unity EditMode with `-quit` again exited before writing XML; the required no-`-quit` reruns produced RED and GREEN XML evidence.

@@ -127,6 +127,52 @@ public sealed class NetworkedCoreLoadRunnerTests
         Assert.That(report.DuplicateResultAccepted, Is.True);
     }
 
+    [Test]
+    public void InvokePhase05FinalizationCallsHookAndReportsUnavailableHook()
+    {
+        var report = new LoadScenarioReport(DateTime.UtcNow, 30, 1);
+        int calls = 0;
+        MethodInfo method = GetPrivateStaticMethod(
+            "InvokePhase05Finalization",
+            typeof(LoadScenarioReport),
+            typeof(Action));
+
+        Assert.That(method, Is.Not.Null);
+
+        bool invoked = (bool)method.Invoke(null, new object[] { report, new Action(() => calls++) });
+        bool missing = (bool)method.Invoke(null, new object[] { report, null });
+
+        Assert.That(invoked, Is.True);
+        Assert.That(calls, Is.EqualTo(1));
+        Assert.That(missing, Is.False);
+        Assert.That(report.MachineNotes, Does.Contain("Phase 05 finalization hook unavailable."));
+    }
+
+    [Test]
+    public void Phase05RunSuccessRequiresSubmittedResultAndAcceptedDuplicate()
+    {
+        var report = new LoadScenarioReport(DateTime.UtcNow, 30, 1)
+        {
+            CompletedClients = 1,
+            FailedClients = 0,
+            ResultSubmitted = true,
+            DuplicateResultAccepted = false
+        };
+        MethodInfo method = GetPrivateStaticMethod(
+            "ShouldExitSuccessfully",
+            typeof(LoadScenarioReport),
+            typeof(int),
+            typeof(bool));
+
+        Assert.That(method, Is.Not.Null);
+
+        bool success = (bool)method.Invoke(null, new object[] { report, 1, true });
+
+        Assert.That(success, Is.False);
+        Assert.That(report.FailedClients, Is.EqualTo(1));
+        Assert.That(report.DisconnectReasons, Does.Contain("phase05_result_verification_failed"));
+    }
+
     private static object ParseOptions(params string[] args)
     {
         Type runnerType = Type.GetType("LH.Main.Unity.Editor.NetworkedCoreLoadRunner, Assembly-CSharp-Editor");
@@ -143,5 +189,16 @@ public sealed class NetworkedCoreLoadRunnerTests
 
         Assert.That(property, Is.Not.Null);
         return (T)property.GetValue(target);
+    }
+
+    private static MethodInfo GetPrivateStaticMethod(string name, params Type[] parameterTypes)
+    {
+        Type runnerType = Type.GetType("LH.Main.Unity.Editor.NetworkedCoreLoadRunner, Assembly-CSharp-Editor");
+        return runnerType?.GetMethod(
+            name,
+            BindingFlags.Static | BindingFlags.NonPublic,
+            null,
+            parameterTypes,
+            null);
     }
 }

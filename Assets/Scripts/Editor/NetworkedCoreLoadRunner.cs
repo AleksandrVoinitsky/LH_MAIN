@@ -126,9 +126,12 @@ namespace LH.Main.Unity.Editor
                 }
 
                 if (options.Phase05GameplayLoop)
-                    await SubmitPhase05ResultAsync(options, assignments, results, report, cancellationSource.Token);
+                {
+                    if (InvokePhase05Finalization(report, bootstrap == null ? null : bootstrap.FinalizeMatchForLoadRunner))
+                        await SubmitPhase05ResultAsync(options, assignments, results, report, cancellationSource.Token);
+                }
 
-                exitCode = report.FailedClients == 0 && report.CompletedClients == options.Clients ? 0 : 1;
+                exitCode = ShouldExitSuccessfully(report, options.Clients, options.Phase05GameplayLoop) ? 0 : 1;
             }
             catch (Exception ex)
             {
@@ -262,6 +265,42 @@ namespace LH.Main.Unity.Editor
                 && result.Moved
                 && result.DisconnectedCleanly
                 && (result.Extracted || result.Dead || result.DisconnectedOutcome);
+        }
+
+        private static bool InvokePhase05Finalization(LoadScenarioReport report, Action finalizationHook)
+        {
+            if (finalizationHook == null)
+            {
+                report?.MachineNotes.Add("Phase 05 finalization hook unavailable.");
+                return false;
+            }
+
+            try
+            {
+                finalizationHook();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                report?.MachineNotes.Add("Phase 05 finalization hook failed: " + ex.GetType().Name);
+                return false;
+            }
+        }
+
+        private static bool ShouldExitSuccessfully(LoadScenarioReport report, int targetClients, bool phase05GameplayLoop)
+        {
+            bool clientsSucceeded = report.FailedClients == 0 && report.CompletedClients == targetClients;
+            if (!phase05GameplayLoop)
+                return clientsSucceeded;
+
+            bool resultSucceeded = report.ResultSubmitted && report.DuplicateResultAccepted;
+            if (!resultSucceeded && report.FailedClients == 0)
+            {
+                report.FailedClients = Math.Max(1, targetClients - report.CompletedClients);
+                report.DisconnectReasons.Add("phase05_result_verification_failed");
+            }
+
+            return clientsSucceeded && resultSucceeded;
         }
 
         private static async Task SubmitPhase05ResultAsync(LoadRunnerOptions options, DevAssignment[] assignments, BotResult[] results, LoadScenarioReport report, CancellationToken cancellationToken)
