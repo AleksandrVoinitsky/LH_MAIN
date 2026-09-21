@@ -524,22 +524,22 @@ namespace LH.Main.Unity.Editor
                 bool reportPathFromCommandLine = false;
                 for (int i = 0; i < args.Length; i++)
                 {
-                    if ((args[i] == "--clients" || args[i] == "-lhClients") && i + 1 < args.Length && int.TryParse(args[i + 1], out int clients))
+                    if ((args[i] == "--clients" || args[i] == "-clients" || args[i] == "-lhClients") && i + 1 < args.Length && int.TryParse(args[i + 1], out int clients))
                         options.Clients = Math.Max(1, clients);
-                    if ((args[i] == "--durationSeconds" || args[i] == "-lhDurationSeconds") && i + 1 < args.Length && int.TryParse(args[i + 1], out int durationSeconds))
+                    if ((args[i] == "--durationSeconds" || args[i] == "-durationSeconds" || args[i] == "-lhDurationSeconds") && i + 1 < args.Length && int.TryParse(args[i + 1], out int durationSeconds))
                         options.DurationSeconds = Math.Max(1, durationSeconds);
-                    if ((args[i] == "--backendUrl" || args[i] == "-lhBackendUrl") && i + 1 < args.Length)
+                    if ((args[i] == "--backendUrl" || args[i] == "-backendUrl" || args[i] == "-lhBackendUrl") && i + 1 < args.Length)
                         options.BackendUrl = args[i + 1];
-                    if ((args[i] == "--sharedKey" || args[i] == "-lhSharedKey") && i + 1 < args.Length)
+                    if ((args[i] == "--sharedKey" || args[i] == "-sharedKey" || args[i] == "-lhSharedKey") && i + 1 < args.Length)
                         options.SharedKey = args[i + 1];
-                    if ((args[i] == "--reportPath" || args[i] == "-lhReportPath") && i + 1 < args.Length)
+                    if ((args[i] == "--reportPath" || args[i] == "-reportPath" || args[i] == "-lhReportPath") && i + 1 < args.Length)
                     {
                         options.ReportPath = args[i + 1];
                         reportPathFromCommandLine = true;
                     }
-                    if (args[i] == "-lhPhase05GameplayLoop" && i + 1 < args.Length && bool.TryParse(args[i + 1], out bool phase05GameplayLoop))
+                    if ((args[i] == "-phase05GameplayLoop" || args[i] == "-lhPhase05GameplayLoop") && i + 1 < args.Length && bool.TryParse(args[i + 1], out bool phase05GameplayLoop))
                         options.Phase05GameplayLoop = phase05GameplayLoop;
-                    if ((args[i] == "--phase06CoreMatch" || args[i] == "-lhPhase06CoreMatch") && i + 1 < args.Length && bool.TryParse(args[i + 1], out bool phase06CoreMatch))
+                    if ((args[i] == "--phase06CoreMatch" || args[i] == "-phase06CoreMatch" || args[i] == "-lhPhase06CoreMatch") && i + 1 < args.Length && bool.TryParse(args[i + 1], out bool phase06CoreMatch))
                         options.Phase06CoreMatch = phase06CoreMatch;
                 }
 

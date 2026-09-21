@@ -1,0 +1,95 @@
+[Licensing::Module] Trying to connect to existing licensing client channel...
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-Maany" at "2026-09-20T22:07:57.3085156Z"
+[Licensing::Client] Code 10 while verifying Licensing Client signature (process Id: 17628, path: "C:/Program Files/Unity Hub/UnityLicensingClient_V1/Unity.Licensing.Client.exe")
+[Licensing::Module] LicensingClient has failed validation; ignoring
+[Licensing::Client] Handshaking with LicensingClient:
+  Version:                 1.18.3+d7ffd15
+  Session Id:              e54b36ddd36942b194837cebf373b368
+  Correlation Id:          18eecb6ed445e06890819ccb418b1d34
+  External correlation Id: 573823918645238860
+  Machine Id:              SAmQqzpSB4y9J7CgLmYwl0lgYnY=
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-Maany" (connect: 0.00s, validation: 0.01s, handshake: 0.06s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-Maany-notifications" at "2026-09-20T22:07:57.3755073Z"
+[Licensing::Module] Error: Access token is unavailable; failed to update
+[Licensing::Client] Successfully updated license
+Built from '2022.3/respin/2022.3.62f2-4af31df585-v2' branch; Version is '2022.3.62f2 (7670c08855a9) revision 7762112'; Using compiler version '192829333'; Build Type 'Release'
+OS: 'Windows 10  (10.0.19045) 64bit Professional' Language: 'ru' Physical Memory: 32697 MB
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] Serial number assigned to: "F4-66SU-QPMD-7W9E-TH85-XXXX"
+[Licensing::Module] Serial number assigned to: "10170571953102-UnityPersXXXX"
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1, IsPro: 0
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] Serial number assigned to: "F4-66SU-QPMD-7W9E-TH85-XXXX"
+[Licensing::Module] Serial number assigned to: "10170571953102-UnityPersXXXX"
+
+COMMAND LINE ARGUMENTS:
+C:\Program Files\Unity\Hub\Editor\2022.3.62f2\Editor\Unity.exe
+-batchmode
+-quit
+-projectPath
+D:\LH_MAIN\.worktrees\phase-06-core-match
+-runTests
+-testPlatform
+EditMode
+-testResults
+D:\LH_MAIN\.worktrees\phase-06-core-match\.superpowers\sdd\2026-09-21-phase-06-core-match\task-8-editmode.xml
+-logFile
+D:\LH_MAIN\.worktrees\phase-06-core-match\.superpowers\sdd\2026-09-21-phase-06-core-match\task-8-editmode-fix.log
+Successfully changed project path to: D:\LH_MAIN\.worktrees\phase-06-core-match
+D:/LH_MAIN/.worktrees/phase-06-core-match
+[UnityMemory] Configuration Parameters - Can be set up in boot.config
+    "memorysetup-bucket-allocator-granularity=16"
+    "memorysetup-bucket-allocator-bucket-count=8"
+    "memorysetup-bucket-allocator-block-size=33554432"
+    "memorysetup-bucket-allocator-block-count=8"
+    "memorysetup-main-allocator-block-size=16777216"
+    "memorysetup-thread-allocator-block-size=16777216"
+    "memorysetup-gfx-main-allocator-block-size=16777216"
+    "memorysetup-gfx-thread-allocator-block-size=16777216"
+    "memorysetup-cache-allocator-block-size=4194304"
+    "memorysetup-typetree-allocator-block-size=2097152"
+    "memorysetup-profiler-bucket-allocator-granularity=16"
+    "memorysetup-profiler-bucket-allocator-bucket-count=8"
+    "memorysetup-profiler-bucket-allocator-block-size=33554432"
+    "memorysetup-profiler-bucket-allocator-block-count=8"
+    "memorysetup-profiler-allocator-block-size=16777216"
+    "memorysetup-profiler-editor-allocator-block-size=1048576"
+    "memorysetup-temp-allocator-size-main=16777216"
+    "memorysetup-job-temp-allocator-block-size=2097152"
+    "memorysetup-job-temp-allocator-block-size-background=1048576"
+    "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
+    "memorysetup-allocator-temp-initial-block-size-main=262144"
+    "memorysetup-allocator-temp-initial-block-size-worker=262144"
+    "memorysetup-temp-allocator-size-background-worker=32768"
+    "memorysetup-temp-allocator-size-job-worker=262144"
+    "memorysetup-temp-allocator-size-preload-manager=33554432"
+    "memorysetup-temp-allocator-size-nav-mesh-worker=65536"
+    "memorysetup-temp-allocator-size-audio-worker=65536"
+    "memorysetup-temp-allocator-size-cloud-worker=32768"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gfx=262144"
+Player connection [28276]  Target information:
+
+Player connection [28276]  * "[IP] 172.27.160.1 [Port] 55504 [Flags] 2 [Guid] 1482911137 [EditorId] 1482911137 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-VRI4GO3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor"
+
+Player connection [28276]  * "[IP] 10.59.48.195 [Port] 55504 [Flags] 2 [Guid] 1482911137 [EditorId] 1482911137 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-VRI4GO3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor"
+
+Player connection [28276]  * "[IP] 192.168.0.21 [Port] 55504 [Flags] 2 [Guid] 1482911137 [EditorId] 1482911137 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-VRI4GO3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor"
+
+Unable to join player connection multicast group (err: 10013).
+Player connection [28276] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Input System module state changed to: Initialized.
+[PhysX] Initialized MultithreadedTaskDispatcher with 16 workers.
+[Package Manager] UpmClient::Connect -- Connected to IPC stream "Upm-35936" after 0.5 seconds.
+Rebuilding Library because the metadata folder could not be found!
+Source asset database requested to be recreated
+[Package Manager] Done resolving packages in 3.36 seconds
+[Licensing::Client] Successfully resolved entitlement details
+An error occurred while resolving packages:
+  Project has invalid dependencies:
+    com.unity.modules.accessibility: Package [com.unity.modules.accessibility@1.0.0] cannot be found
+    com.unity.modules.adaptiveperformance: Package [com.unity.modules.adaptiveperformance@1.0.0] cannot be found
+    com.unity.modules.vectorgraphics: Package [com.unity.modules.vectorgraphics@1.0.0] cannot be found
+    com.unity.multiplayer.center: Package [com.unity.multiplayer.center@1.0.1] cannot be found
+    com.unity.test-framework: Package [com.unity.test-framework@1.6.0] cannot be found
+Exiting without the bug reporter. Application will terminate with return code 1

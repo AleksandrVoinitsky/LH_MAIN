@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="16" result="Passed" total="16" passed="16" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-20 23:40:21Z" end-time="2026-09-20 23:40:22Z" duration="0,766855">
+  <test-suite type="TestSuite" id="1000" name="My project" fullname="My project" runstate="Runnable" testcasecount="149" result="Passed" start-time="2026-09-20 23:40:21Z" end-time="2026-09-20 23:40:22Z" duration="0.766855" total="16" passed="16" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1179" name="LH.Main.Unity.EditMode.Tests.dll" fullname="D:/LH_MAIN/.worktrees/phase-06-core-match/Library/ScriptAssemblies/LH.Main.Unity.EditMode.Tests.dll" runstate="Runnable" testcasecount="149" result="Passed" start-time="2026-09-20 23:40:21Z" end-time="2026-09-20 23:40:22Z" duration="0.754288" total="16" passed="16" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="17804" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestFixture" id="1107" name="NetworkedCoreLoadRunnerTests" fullname="NetworkedCoreLoadRunnerTests" classname="NetworkedCoreLoadRunnerTests" runstate="Runnable" testcasecount="16" result="Passed" start-time="2026-09-20 23:40:21Z" end-time="2026-09-20 23:40:22Z" duration="0.749071" total="16" passed="16" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1116" name="ApplySubmissionOutcomeRequiresDuplicateWithNoNewRewardTransactions" fullname="NetworkedCoreLoadRunnerTests.ApplySubmissionOutcomeRequiresDuplicateWithNoNewRewardTransactions" methodname="ApplySubmissionOutcomeRequiresDuplicateWithNoNewRewardTransactions" classname="NetworkedCoreLoadRunnerTests" runstate="Runnable" seed="799216175" result="Passed" start-time="2026-09-20 23:40:21Z" end-time="2026-09-20 23:40:21Z" duration="0.022834" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1123" name="BuildPhase05ResultPayloadAssignsRewardCodeToEveryOutcome" fullname="NetworkedCoreLoadRunnerTests.BuildPhase05ResultPayloadAssignsRewardCodeToEveryOutcome" methodname="BuildPhase05ResultPayloadAssignsRewardCodeToEveryOutcome" classname="NetworkedCoreLoadRunnerTests" runstate="Runnable" seed="265495399" result="Passed" start-time="2026-09-20 23:40:21Z" end-time="2026-09-20 23:40:21Z" duration="0.006944" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1113" name="EnvironmentReportPathOverridesPhase05DefaultReportPath" fullname="NetworkedCoreLoadRunnerTests.EnvironmentReportPathOverridesPhase05DefaultReportPath" methodname="EnvironmentReportPathOverridesPhase05DefaultReportPath" classname="NetworkedCoreLoadRunnerTests" runstate="Runnable" seed="1452558270" result="Passed" start-time="2026-09-20 23:40:21Z" end-time="2026-09-20 23:40:21Z" duration="0.003295" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1117" name="InvokePhase05FinalizationAllowsSubmissionWhenHookIsUnavailable" fullname="NetworkedCoreLoadRunnerTests.InvokePhase05FinalizationAllowsSubmissionWhenHookIsUnavailable" methodname="InvokePhase05FinalizationAllowsSubmissionWhenHookIsUnavailable" classname="NetworkedCoreLoadRunnerTests" runstate="Runnable" seed="1215444865" result="Passed" start-time="2026-09-20 23:40:21Z" end-time="2026-09-20 23:40:21Z" duration="0.001892" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1111" name="LoadRunnerConfiguresNetworkManagerToAllowMultipleInstances" fullname="NetworkedCoreLoadRunnerTests.LoadRunnerConfiguresNetworkManagerToAllowMultipleInstances" methodname="LoadRunnerConfiguresNetworkManagerToAllowMultipleInstances" classname="NetworkedCoreLoadRunnerTests" runstate="Runnable" seed="51430947" result="Passed" start-time="2026-09-20 23:40:21Z" end-time="2026-09-20 23:40:21Z" duration="0.352630" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1110" name="LoadRunnerExceptionNoteIncludesTypeAndMessage" fullname="NetworkedCoreLoadRunnerTests.LoadRunnerExceptionNoteIncludesTypeAndMessage" methodname="LoadRunnerExceptionNoteIncludesTypeAndMessage" classname="NetworkedCoreLoadRunnerTests" runstate="Runnable" seed="1258377518" result="Passed" start-time="2026-09-20 23:40:21Z" end-time="2026-09-20 23:40:21Z" duration="0.001039" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1109" name="LoadRunnerOpensConfiguredSceneWhenNetworkManagerIsMissing" fullname="NetworkedCoreLoadRunnerTests.LoadRunnerOpensConfiguredSceneWhenNetworkManagerIsMissing" methodname="LoadRunnerOpensConfiguredSceneWhenNetworkManagerIsMissing" classname="NetworkedCoreLoadRunnerTests" runstate="Runnable" seed="986483657" result="Passed" start-time="2026-09-20 23:40:21Z" end-time="2026-09-20 23:40:22Z" duration="0.329161" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1112" name="Phase05GameplayLoopOptionSwitchesDefaultReportPath" fullname="NetworkedCoreLoadRunnerTests.Phase05GameplayLoopOptionSwitchesDefaultReportPath" methodname="Phase05GameplayLoopOptionSwitchesDefaultReportPath" classname="NetworkedCoreLoadRunnerTests" runstate="Runnable" seed="498770855" result="Passed" start-time="2026-09-20 23:40:22Z" end-time="2026-09-20 23:40:22Z" duration="0.000751" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1118" name="Phase05RunSuccessRequiresSubmittedResultAndAcceptedDuplicate" fullname="NetworkedCoreLoadRunnerTests.Phase05RunSuccessRequiresSubmittedResultAndAcceptedDuplicate" methodname="Phase05RunSuccessRequiresSubmittedResultAndAcceptedDuplicate" classname="NetworkedCoreLoadRunnerTests" runstate="Runnable" seed="1837139691" result="Passed" start-time="2026-09-20 23:40:22Z" end-time="2026-09-20 23:40:22Z" duration="0.001335" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1121" name="Phase06BotResultsDoNotPopulateAuthoritativeCoverageCounters" fullname="NetworkedCoreLoadRunnerTests.Phase06BotResultsDoNotPopulateAuthoritativeCoverageCounters" methodname="Phase06BotResultsDoNotPopulateAuthoritativeCoverageCounters" classname="NetworkedCoreLoadRunnerTests" runstate="Runnable" seed="2066888145" result="Passed" start-time="2026-09-20 23:40:22Z" end-time="2026-09-20 23:40:22Z" duration="0.001449" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1115" name="Phase06CoreMatchAcceptsPlannedSingleDashCommandLine" fullname="NetworkedCoreLoadRunnerTests.Phase06CoreMatchAcceptsPlannedSingleDashCommandLine" methodname="Phase06CoreMatchAcceptsPlannedSingleDashCommandLine" classname="NetworkedCoreLoadRunnerTests" runstate="Runnable" seed="1663231202" result="Passed" start-time="2026-09-20 23:40:22Z" end-time="2026-09-20 23:40:22Z" duration="0.000816" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1114" name="Phase06CoreMatchOptionSwitchesDefaultReportPath" fullname="NetworkedCoreLoadRunnerTests.Phase06CoreMatchOptionSwitchesDefaultReportPath" methodname="Phase06CoreMatchOptionSwitchesDefaultReportPath" classname="NetworkedCoreLoadRunnerTests" runstate="Runnable" seed="650442609" result="Passed" start-time="2026-09-20 23:40:22Z" end-time="2026-09-20 23:40:22Z" duration="0.000299" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1120" name="Phase06RunFailsWhenDuplicateLootSucceededOrCoverageIsMissing" fullname="NetworkedCoreLoadRunnerTests.Phase06RunFailsWhenDuplicateLootSucceededOrCoverageIsMissing" methodname="Phase06RunFailsWhenDuplicateLootSucceededOrCoverageIsMissing" classname="NetworkedCoreLoadRunnerTests" runstate="Runnable" seed="72676124" result="Passed" start-time="2026-09-20 23:40:22Z" end-time="2026-09-20 23:40:22Z" duration="0.000623" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1119" name="Phase06RunSuccessRequiresCompletedClientsAndCoverageWithoutDuplicateLootSuccess" fullname="NetworkedCoreLoadRunnerTests.Phase06RunSuccessRequiresCompletedClientsAndCoverageWithoutDuplicateLootSuccess" methodname="Phase06RunSuccessRequiresCompletedClientsAndCoverageWithoutDuplicateLootSuccess" classname="NetworkedCoreLoadRunnerTests" runstate="Runnable" seed="1383290501" result="Passed" start-time="2026-09-20 23:40:22Z" end-time="2026-09-20 23:40:22Z" duration="0.000364" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1122" name="Phase06ServerStatusPopulatesAuthoritativeCoverageAndDuplicateSuccess" fullname="NetworkedCoreLoadRunnerTests.Phase06ServerStatusPopulatesAuthoritativeCoverageAndDuplicateSuccess" methodname="Phase06ServerStatusPopulatesAuthoritativeCoverageAndDuplicateSuccess" classname="NetworkedCoreLoadRunnerTests" runstate="Runnable" seed="1469545580" result="Passed" start-time="2026-09-20 23:40:22Z" end-time="2026-09-20 23:40:22Z" duration="0.002914" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1108" name="RecordFailedClientsMarksEveryTargetClientFailed" fullname="NetworkedCoreLoadRunnerTests.RecordFailedClientsMarksEveryTargetClientFailed" methodname="RecordFailedClientsMarksEveryTargetClientFailed" classname="NetworkedCoreLoadRunnerTests" runstate="Runnable" seed="1014668792" result="Passed" start-time="2026-09-20 23:40:22Z" end-time="2026-09-20 23:40:22Z" duration="0.000522" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[Saving results to: C:/Users/Maany/AppData/LocalLow/DefaultCompany/My project\TestResults.xml
+]]></output>
+        </test-case>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

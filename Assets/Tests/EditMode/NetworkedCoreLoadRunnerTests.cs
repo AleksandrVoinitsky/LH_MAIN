@@ -126,6 +126,25 @@ public sealed class NetworkedCoreLoadRunnerTests
     }
 
     [Test]
+    public void Phase06CoreMatchAcceptsPlannedSingleDashCommandLine()
+    {
+        object options = ParseOptions(
+            "-phase06CoreMatch",
+            "true",
+            "-clients",
+            "64",
+            "-durationSeconds",
+            "60",
+            "-reportPath",
+            ".superpowers/sdd/2026-09-21-phase-06-core-match/task-9-final-load-64.json");
+
+        Assert.That(ReadProperty<bool>(options, "Phase06CoreMatch"), Is.True);
+        Assert.That(ReadProperty<int>(options, "Clients"), Is.EqualTo(64));
+        Assert.That(ReadProperty<int>(options, "DurationSeconds"), Is.EqualTo(60));
+        Assert.That(ReadProperty<string>(options, "ReportPath"), Is.EqualTo(".superpowers/sdd/2026-09-21-phase-06-core-match/task-9-final-load-64.json"));
+    }
+
+    [Test]
     public void ApplySubmissionOutcomeRequiresDuplicateWithNoNewRewardTransactions()
     {
         var report = new LoadScenarioReport(DateTime.UtcNow, 30, 3);
